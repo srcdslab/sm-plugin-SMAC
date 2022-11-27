@@ -1,0 +1,38 @@
+project:
+  sourceknight: 0.1
+  name: SMAC
+  dependencies:
+    - name: sourcemod
+      type: tar
+      version: 1.11.0-git6917
+      location: https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6917-linux.tar.gz
+      unpack:
+      - source: /addons
+        dest: /addons
+
+    - name: multicolors
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-MultiColors
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+  root: /
+  output: /addons/sourcemod/plugins
+  targets:
+    - smac
+    - smac_aimbot
+    - smac_autotrigger
+    - smac_client
+    - smac_commands
+    - smac_css_antiflash
+    - smac_css_antismoke
+    - smac_css_fixes
+    - smac_cvars
+    - smac_eyetest
+    - smac_hl2dm_fixes
+    - smac_l4d2_fixes
+    - smac_rcon
+    - smac_speedhack
+    - smac_spinhack
+    - smac_wallhack
