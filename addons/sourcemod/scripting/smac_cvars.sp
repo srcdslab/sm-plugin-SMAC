@@ -109,10 +109,6 @@ public void OnPluginStart()
     {
         AddCvar(Order_Last, "fog_enable",               Comp_Equal, Action_Kick, "1.0");
     }
-    else
-    {
-        AddCvar(Order_Last, "fog_enable",               Comp_Equal, Action_Ban, "1.0");
-    }
 
     AddCvar(Order_Last, "host_timescale",               Comp_Replicated, Action_Ban);
     AddCvar(Order_Last, "mat_dxlevel",                  Comp_Greater, Action_Kick, "80.0");
