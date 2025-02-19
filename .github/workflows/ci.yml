@@ -13,7 +13,7 @@ jobs:
         include:
           - os: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build sourcemod plugin
         uses: maxime1907/action-sourceknight@v1
         with:
@@ -26,7 +26,7 @@ jobs:
           cp -R addons/sourcemod/translations /tmp/package/common/addons/sourcemod/
 
       - name: Upload build archive for test runners
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}
           path: /tmp/package
@@ -36,10 +36,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
-      - uses: dev-drprasad/delete-tag-and-release@v0.2.1
+      - uses: dev-drprasad/delete-tag-and-release@v1.1
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         with:
           delete_release: true
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Versioning
         run: |
