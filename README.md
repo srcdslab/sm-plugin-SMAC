@@ -6,6 +6,11 @@ For a lot of people, SMAC has been one of those more elusive plugins due to some
 For information about the plugin and its modules, please use the wiki here: https://github.com/Silenci0/SMAC/wiki
 
 # Changelog
+0.8.8.0 Update (19-02-2025)
+-----------------
+⚠️ **This update is mandatory after the 18.02.2025 update, otherwise it may falsely ban players**
+- smac_cvars - remove fog_enable check after 18.02.2025 update
+
 0.8.7.4 Update (21-04-2021)
 -----------------
 - smac_l4d2_fixes - removal of unnecessary functions, some bugs were fixed after the update 'THE LAST STAND'
