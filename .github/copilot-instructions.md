@@ -32,7 +32,7 @@ This repository contains SMAC (SourceMod Anti-Cheat), a comprehensive anti-cheat
 addons/sourcemod/
 ├── scripting/              # Source code (.sp files)
 │   ├── include/            # Include files (.inc)
-│   ├── _unsupported/       # Legacy/unsupported modules
+│   ├── _unsupported/       # Legacy/unsupported modules (EAC, ESEA, immunity)
 │   ├── smac.sp            # Core SMAC plugin
 │   ├── smac_aimbot.sp     # Aimbot detection module
 │   ├── smac_wallhack.sp   # Wallhack detection module
@@ -48,6 +48,12 @@ addons/sourcemod/
 - `smac_stocks.inc` - Shared utility functions
 - `smac_wallhack.inc` - Wallhack detection utilities
 - `smac_cvars.inc` - ConVar validation data
+
+### Unsupported Modules
+The `_unsupported/` directory contains legacy code that is no longer maintained:
+- `smac_eac_banlist.sp` - Easy Anti-Cheat integration (deprecated)
+- `smac_esea_banlist.sp` - ESEA integration (deprecated) 
+- `smac_immunity.sp` - Admin immunity system (optional)
 
 ## Code Style & Standards
 
@@ -135,14 +141,20 @@ Database.Query(MyCallback, "SELECT * FROM table WHERE id = %d", userId);
 - Add new phrases to `translations/smac.phrases.txt`
 
 ### ConVar Management
-- Create ConVars with `SMAC_CreateConVar()` function
+- **Preferred**: Use `SMAC_CreateConVar()` for SMAC-specific ConVars
+- **Alternative**: Use `CreateConVar()` for game-specific or special cases
 - Add change hooks for dynamic updates
 - Store handles in global variables with proper naming
-- Example:
+- Examples:
 ```sourcepawn
+// SMAC-specific ConVar (preferred)
 ConVar g_hCvarAimbotBan = null;
 g_hCvarAimbotBan = SMAC_CreateConVar("smac_aimbot_ban", "0", "Description", 0, true, 0.0);
 g_hCvarAimbotBan.AddChangeHook(OnSettingsChanged);
+
+// Game-specific ConVar
+ConVar g_hBlockPunchRock = null;
+g_hBlockPunchRock = CreateConVar("smac_block_punch_rock", "1", "Game-specific setting", _, true, 0.0, true, 1.0);
 ```
 
 ## Build & Validation Process
