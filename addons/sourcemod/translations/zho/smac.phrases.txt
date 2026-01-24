@@ -1,0 +1,135 @@
+"Phrases"
+{
+	"SMAC_Tag"
+	{
+		"zho"		"[SMAC] "
+	}
+	
+	"SMAC_Banned"
+	{
+		"zho"		"您因作弊違規行為已被封鎖！"
+	}
+	
+	"SMAC_GlobalBanned"
+	{
+		"#format"	"{1:s},{2:s}"
+		"zho"		"您被列在 {1} 全球封鎖名單上！請查看 {2} 以取得更多資訊。"
+	}
+	
+	"SMAC_CommandSpamKick"
+	{
+		"zho"		"您因指令濫發（指令洗畫面）而被踢出！"
+	}
+	
+	"SMAC_IllegalDefuse"
+	{
+		"zho"		"您不能穿牆拆彈！"
+	}
+	
+	"SMAC_PleaseWait"
+	{
+		"zho"		"請稍候一分鐘再嘗試重新連線。"
+	}
+	
+	"SMAC_FailedToReply"
+	{
+		"zho"		"您的用戶端沒有及時回應查詢！請重新連線或重啟遊戲。"
+	}
+	
+	"SMAC_FailedAuth"
+	{
+		"zho"		"您的用戶端沒有及時完成授權！請重新連線或重啟遊戲。"
+	}
+	
+	"SMAC_Muted"
+	{
+		"#format"	"{1:N}"
+		"zho"		"{1} 已被 SourceMod Anti-Cheat 靜音（禁言）。"
+	}
+	
+	"SMAC_CvarViolation"
+	{
+		"#format"	"{1:N},{2:s}"
+		"zho"		"{1} 在 {2} 上回傳了錯誤的數值。"
+	}
+	
+	"SMAC_ShouldEqual"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"zho"		"您的連線變數 {1} 應該等於 {2}，但它被設為 {3}！請在重新加入前修正。"
+	}
+	
+	"SMAC_ShouldBeGreater"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"zho"		"您的連線變數 {1} 應該大於或等於 {2}，但它被設為 {3}！請在重新加入前修正。"
+	}
+	
+	"SMAC_ShouldBeLess"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"zho"		"您的連線變數 {1} 應該小於或等於 {2}，但它被設為 {3}！請在重新加入前修正。"
+	}
+	
+	"SMAC_ShouldBeBetween"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"zho"		"您的連線變數 {1} 應該在 {2} 和 {3} 之間，但它被設為 {4}！請在重新加入前修正。"
+	}
+	
+	"SMAC_ShouldBeOutside"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"zho"		"您的連線變數 {1} 不應在 {2} 和 {3} 之間，但它被設為 {4}！請在重新加入前修正。"
+	}
+	
+	"SMAC_ChangeName"
+	{
+		"zho"		"請更改您的遊戲暱稱！"
+	}
+	
+	"SMAC_CmdBanned"
+	{
+		"zho"		"您因指令使用違規行為已被封鎖！"
+	}
+	
+	"SMAC_SayBlock"
+	{
+		"zho"		"您的訊息因含有無效字元而被封鎖！"
+	}
+	
+	"SMAC_AimbotDetected"
+	{
+		"#format"	"{1:N},{2:i},{3:.0f},{4:s}"
+		"zho"		"{1} 疑似使用自動瞄準（Aimbot）作弊！(偵測編號 #{2} | 偏差：{3}° | 武器：{4})"
+	}
+	
+	"SMAC_AutoTriggerDetected"
+	{
+		"#format"	"{1:N},{2:s}"
+		"zho"		"{1} 疑似使用自動開火（Auto-trigger）作弊：{2}。"
+	}
+	
+	"SMAC_SpinhackDetected"
+	{
+		"#format"	"{1:N}"
+		"zho"		"{1} 疑似使用原地轉圈（Spinhack）作弊。"
+	}
+	
+	"SMAC_SpeedhackDetected"
+	{
+		"#format"	"{1:N}"
+		"zho"		"{1} 疑似使用加速（Speedhack）作弊。"
+	}
+	
+	"SMAC_EyetestDetected"
+	{
+		"#format"	"{1:N}"
+		"zho"		"{1} 疑似透過視角角度作弊。"
+	}
+	
+	"SMAC_WelcomeMsg"
+	{
+		"zho"		"本伺服器受到 SourceMod Anti-Cheat 的保護。"
+	}
+}
