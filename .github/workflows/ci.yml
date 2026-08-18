@@ -39,11 +39,11 @@ jobs:
       - uses: actions/checkout@v7
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
-      - uses: dev-drprasad/delete-tag-and-release@v1.1
+      - name: Delete existing "latest" release and tag
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-        with:
-          delete_release: true
-          tag_name: latest
+        run: |
+          set -euo pipefail
+          gh release delete latest --cleanup-tag --yes || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
