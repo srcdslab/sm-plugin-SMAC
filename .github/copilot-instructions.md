@@ -15,12 +15,12 @@ This repository contains SMAC (SourceMod Anti-Cheat), a comprehensive anti-cheat
 
 - **Language**: SourcePawn
 - **Platform**: SourceMod 1.12+ (minimum supported version)
-- **Build Tool**: SourceKnight build system
-- **Compiler**: SourcePawn compiler (spcomp) via SourceKnight
+- **Build Tool**: Native GitHub Actions workflow (setup-sp)
+- **Compiler**: SourcePawn compiler (spcomp)
 - **CI/CD**: GitHub Actions with automated builds and releases
 
 ### Dependencies
-- SourceMod 1.11.0+ (build system uses 1.11.0-git6934)
+- SourceMod 1.12.x
 - MultiColors include for colored chat messages
 - SDKTools for Source engine integration
 - Optional: SourceBans/SourceBans++ for ban management
@@ -43,7 +43,7 @@ addons/sourcemod/
 ```
 
 ### Key Files
-- `sourceknight.yaml` - Build configuration and dependencies
+- `.github/workflows/ci.yml` - Build configuration and dependencies
 - `smac.inc` - Main SMAC include with constants and API
 - `smac_stocks.inc` - Shared utility functions
 - `smac_wallhack.inc` - Wallhack detection utilities
@@ -160,18 +160,15 @@ g_hBlockPunchRock = CreateConVar("smac_block_punch_rock", "1", "Game-specific se
 ## Build & Validation Process
 
 ### Building
-1. **Local Development**: Use SourceKnight build system
-   ```bash
-   sourceknight build
-   ```
+1. **Local Development**: Compile individual plugins with `spcomp` (see `.github/workflows/ci.yml` for the include path and dependency setup)
 
 2. **CI/CD**: Automated builds via GitHub Actions
    - Triggers on push, PR, and manual dispatch
-   - Builds all targets defined in `sourceknight.yaml`
+   - Builds all targets defined in `.github/workflows/ci.yml`
    - Creates release packages with plugins and translations
 
 ### Targets
-All plugins defined in `sourceknight.yaml` targets section:
+All plugins defined in `.github/workflows/ci.yml` build step:
 - Core: `smac`
 - Detection modules: `smac_aimbot`, `smac_wallhack`, `smac_speedhack`, etc.
 - Game-specific: `smac_css_fixes`, `smac_l4d2_fixes`, etc.
