@@ -12,7 +12,6 @@
 	
 	"SMAC_GlobalBanned"
 	{
-		"#format"	"{1:s},{2:s}"
 		"chi"		"你处在 {1} 的全局封禁列表中. 请访问 {2} 以获得详细信息"
 	}
 	
@@ -43,44 +42,37 @@
 	
 	"SMAC_Muted"
 	{
-		"#format"	"{1:N}"
 		"chi"		"{1} 被 SourceMod Anti-Cheat 禁言."
 	}
 	
 	"SMAC_CvarViolation"
 	{
-		"#format"	"{1:N},{2:s}"
 		"chi"		"{1} 返回了 {2} 的错误的值."
 	}
 	
 	"SMAC_ShouldEqual"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"chi"		"你的 convar {1} 的值应该为 {2} 但是它被设置为 {3} 了. 请在重连之前设置正确"
 	}
 	
 	"SMAC_ShouldBeGreater"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
-		"chi"		"你的 convar {1} 的值应该大于或与 {2} 相同 但是它被设置为 {3} 了. 请修改完 {1} 的值后重新连接服务器"
+		"chi"		"你的 convar {1} 的值应该大于或与 {2} 相同 但是它被设置为 {3} 了. 请修改该值后重新连接服务器"
 	}
 	
 	"SMAC_ShouldBeLess"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
-		"chi"		"你的 convar {1} 的值应该小于或与 {2} 相同 但是它被设置为 {3} 了. 请修改完 {1} 的值后重新连接服务器"
+		"chi"		"你的 convar {1} 的值应该小于或与 {2} 相同 但是它被设置为 {3} 了. 请修改该值后重新连接服务器"
 	}
 	
 	"SMAC_ShouldBeBetween"
 	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
-		"chi"		"你的 convar {1} 的值应该在 {2} 和 {3} 之间 但是它被设置为 {4} 了. 请修改完 {1} 的值后重新连接服务器"
+		"chi"		"你的 convar {1} 的值应该在 {2} 和 {3} 之间 但是它被设置为 {4} 了. 请修改该值后重新连接服务器"
 	}
 	
 	"SMAC_ShouldBeOutside"
 	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
-		"chi"		"你的 convar {1} 的值不应该在 {2} 和 {3} 之间 但是它被设置为 {4} 了. 请修改完 {1} 的值后重新连接服务器"
+		"chi"		"你的 convar {1} 的值不应该在 {2} 和 {3} 之间 但是它被设置为 {4} 了. 请修改该值后重新连接服务器"
 	}
 	
 	"SMAC_ChangeName"
@@ -100,31 +92,26 @@
 	
 	"SMAC_AimbotDetected"
 	{
-		"#format"	"{1:N},{2:i},{3:.0f},{4:s}"
 		"chi"		"{1} 涉嫌使用自瞄. (检测 #{2} 次| 偏离: {3}° | 武器: {4})"
 	}
 	
 	"SMAC_AutoTriggerDetected"
 	{
-		"#format"	"{1:N},{2:s}"
 		"chi"		"{1} 涉嫌自动触发式作弊: {2}"
 	}
 	
 	"SMAC_SpinhackDetected"
 	{
-		"#format"	"{1:N}"
 		"chi"		"{1} 涉嫌使用陀螺(Spinhack/Antiaim)."
 	}
 	
 	"SMAC_SpeedhackDetected"
 	{
-		"#format"	"{1:N}"
 		"chi"		"{1} 涉嫌使用加速挂(Speedhack)."
 	}
 	
 	"SMAC_EyetestDetected"
 	{
-		"#format"	"{1:N}"
 		"chi"		"{1} 涉嫌非法修改视角."
 	}
 	
