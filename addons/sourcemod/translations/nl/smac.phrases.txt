@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"nl"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"nl"		"Je bent verbannen voor een valsspeel-infractie."

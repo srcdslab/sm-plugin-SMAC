@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"it"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"it"		"Sei stato bannato per aver utilizzato dei trucchi"

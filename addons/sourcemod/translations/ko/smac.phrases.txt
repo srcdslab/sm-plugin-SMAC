@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"ko"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"ko"		"당신은 부정행위를 한 것으로 간주되어 서버로부터 차단되었습니다."
