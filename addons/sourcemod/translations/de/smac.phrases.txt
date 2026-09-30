@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"de"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"de"		"Du wurdest wegen Cheating gebannt"

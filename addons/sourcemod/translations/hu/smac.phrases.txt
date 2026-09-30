@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"hu"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"hu"		"Csalás miatt ki lettél tiltva erről a szerverről"

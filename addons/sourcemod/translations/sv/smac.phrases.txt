@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"sv"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"sv"		"Du har blivit bannad för en otillåten överträdelse"

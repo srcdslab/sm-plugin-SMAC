@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"es"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"es"		"Has sido bloqueado por usar trampas."

@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"pl"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"pl"		"Zostałeś zbanowany za oszukiwanie"

@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"fi"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"fi"		"Sinulla on porttikielto serverille huijaamisen takia."

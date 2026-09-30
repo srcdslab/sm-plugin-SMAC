@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"ru"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"ru"		"Вы были забанены за читы"

@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"lt"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"lt"		"Jūs buvot užbanintas už čytinimą"

@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"SMAC_Tag"
+	{
+		"no"		"[SMAC] "
+	}
+	
 	"SMAC_Banned"
 	{
 		"no"		"Du har blitt utestengt på grunn av brudd på reglementet"
