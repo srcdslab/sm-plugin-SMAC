@@ -117,7 +117,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 
 void Spinhack_Detected(int client)
 {
-    if (SMAC_CheatDetected(client, Detection_Spinhack, INVALID_HANDLE) == Plugin_Continue)
+    if (SMAC_CheatDetected(client, Detection_Spinhack, null) == Plugin_Continue)
     {
         SMAC_PrintAdminNotice("%t", "SMAC_SpinhackDetected", client);
         SMAC_LogAction(client, "is suspected of using a spinhack.");

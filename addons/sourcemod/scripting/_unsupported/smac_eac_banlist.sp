@@ -46,7 +46,7 @@ enum BanType {
 
 ConVar g_hCvarKick;
 ConVar g_hCvarVAC;
-Handle g_hBanlist = INVALID_HANDLE;
+StringMap g_hBanlist = null;
 bool g_bLateLoad = false;
 
 /* Plugin Functions */
@@ -65,7 +65,7 @@ public void OnPluginStart()
     g_hCvarVAC = SMAC_CreateConVar("smac_eac_vac", "0", "Check players for previous VAC bans.", 0, true, 0.0, true, 1.0);
 
     // Initialize.
-    g_hBanlist = CreateTrie();
+    g_hBanlist = new StringMap();
 
     if (g_bLateLoad)
     {
@@ -95,11 +95,11 @@ public void OnClientAuthorized(int client, const char[] auth)
     // Check the cache first.
     BanType banValue = Ban_None;
 
-    if (GetTrieValue(g_hBanlist, sAuthID, banValue))
+    if (g_hBanlist.GetValue(sAuthID, banValue))
     {
-        if (banValue == Ban_EAC || (banValue == Ban_VAC && GetConVarBool(g_hCvarVAC)))
+        if (banValue == Ban_EAC || (banValue == Ban_VAC && g_hCvarVAC.BoolValue))
         {
-            if (GetConVarBool(g_hCvarKick) && SMAC_CheatDetected(client, Detection_GlobalBanned_EAC, INVALID_HANDLE) == Plugin_Continue)
+            if (g_hCvarKick.BoolValue && SMAC_CheatDetected(client, Detection_GlobalBanned_EAC, null) == Plugin_Continue)
             {
                 KickClient(client, "%t", "SMAC_GlobalBanned", "EAC", "www.EasyAntiCheat.net");
             }
@@ -109,15 +109,15 @@ public void OnClientAuthorized(int client, const char[] auth)
     }
 	
     // Clear a large cache to prevent slowdowns. Shouldn't reach this size anyway.
-    if (GetTrieSize(g_hBanlist) > 50000)
+    if (g_hBanlist.Size > 50000)
     {
-        ClearTrie(g_hBanlist);
+        g_hBanlist.Clear();
     }
     
     // Check the banlist.
-    Handle hPack = CreateDataPack();
-    WritePackCell(hPack, GetClientUserId(client));
-    WritePackString(hPack, sAuthID);
+    DataPack hPack = new DataPack();
+    hPack.WriteCell(GetClientUserId(client));
+    hPack.WriteString(sAuthID);
 
     Handle socket = SocketCreate(SOCKET_TCP, OnSocketError);
     SocketSetArg(socket, hPack);
@@ -128,9 +128,9 @@ public void OnClientAuthorized(int client, const char[] auth)
 public void OnSocketConnected(Handle socket, any hPack)
 {
     char sAuthID[MAX_AUTHID_LENGTH], sRequest[256];
-    ResetPack(hPack);
-    ReadPackCell(hPack);
-    ReadPackString(hPack, sAuthID, sizeof(sAuthID));
+    hPack.Reset();
+    hPack.ReadCell();
+    hPack.ReadString(sAuthID, sizeof(sAuthID));
     FormatEx(sRequest, sizeof(sRequest), "GET /%s%s HTTP/1.0\r\nHost: %s\r\nConnection: close\r\n\r\n", EAC_QUERY, sAuthID, EAC_HOSTNAME);
     SocketSend(socket, sRequest);
 }
@@ -139,12 +139,12 @@ public void OnSocketReceive(Handle socket, char[] data, const int size, any hPac
 {
     char sAuthID[MAX_AUTHID_LENGTH];
     int idx;
-    ResetPack(hPack);
-    ReadPackCell(hPack);
-    ReadPackString(hPack, sAuthID, sizeof(sAuthID));
+    hPack.Reset();
+    hPack.ReadCell();
+    hPack.ReadString(sAuthID, sizeof(sAuthID));
 
     // Check if we already have the result we needed.
-    if (GetTrieValue(g_hBanlist, sAuthID, idx))
+    if (g_hBanlist.GetValue(sAuthID, idx))
     {
         return;
     }
@@ -161,7 +161,7 @@ public void OnSocketReceive(Handle socket, char[] data, const int size, any hPac
     if (offset == -1)
     {
         // Not on the banlist.
-        SetTrieValue(g_hBanlist, sAuthID, Ban_None);
+        g_hBanlist.SetValue(sAuthID, Ban_None);
         return;
     }
 
@@ -186,31 +186,31 @@ public void OnSocketReceive(Handle socket, char[] data, const int size, any hPac
     // Check if it's a VAC ban.
     if (StrEqual(sBanChunks[1], "VAC Banned"))
     {
-        SetTrieValue(g_hBanlist, sAuthID, Ban_VAC);
+        g_hBanlist.SetValue(sAuthID, Ban_VAC);
 
-        if (!GetConVarBool(g_hCvarVAC))
+        if (!g_hCvarVAC.BoolValue)
         {
             return;
         }
     }
     else
     {
-        SetTrieValue(g_hBanlist, sAuthID, Ban_EAC);
+        g_hBanlist.SetValue(sAuthID, Ban_EAC);
     }
 
     // Notify and log.
-    ResetPack(hPack);
+    hPack.Reset();
 
-    int client = GetClientOfUserId(ReadPackCell(hPack));
+    int client = GetClientOfUserId(hPack.ReadCell());
 
-    if (!IS_CLIENT(client) || SMAC_CheatDetected(client, Detection_GlobalBanned_EAC, INVALID_HANDLE) != Plugin_Continue)
+    if (!IS_CLIENT(client) || SMAC_CheatDetected(client, Detection_GlobalBanned_EAC, null) != Plugin_Continue)
     {
         return;
     }
 
     SMAC_PrintAdminNotice("%N | %s | EAC: %s", client, sBanChunks[0], sBanChunks[1]);
 
-    if (GetConVarBool(g_hCvarKick))
+    if (g_hCvarKick.BoolValue)
     {
         SMAC_LogAction(client, "was kicked. (Reason: %s | Expires: %s)", sBanChunks[1], sBanChunks[3]);
         KickClient(client, "%t", "SMAC_GlobalBanned", "EAC", "www.EasyAntiCheat.net");
@@ -223,12 +223,12 @@ public void OnSocketReceive(Handle socket, char[] data, const int size, any hPac
 
 public void OnSocketDisconnected(Handle socket, any hPack)
 {
-    CloseHandle(hPack);
-    CloseHandle(socket);
+    delete hPack;
+    delete socket;
 }
 
 public void OnSocketError(Handle socket, const int errorType, const int errorNum, any hPack)
 {
-    CloseHandle(hPack);
-    CloseHandle(socket);
+    delete hPack;
+    delete socket;
 }

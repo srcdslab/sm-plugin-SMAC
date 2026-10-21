@@ -173,14 +173,14 @@ void AutoTrigger_Detected(int client,int method)
             }
         }
 
-        Handle info = CreateKeyValues("");
-        KvSetString(info, "method", sMethod);
+        KeyValues info = new KeyValues("");
+        info.SetString("method", sMethod);
 
         if (SMAC_CheatDetected(client, Detection_AutoTrigger, info) == Plugin_Continue)
         {
             SMAC_PrintAdminNotice("%t", "SMAC_AutoTriggerDetected", client, sMethod);
 
-            if (GetConVarBool(g_hCvarBan))
+            if (g_hCvarBan.BoolValue)
             {
                 SMAC_LogAction(client, "was banned for using auto-trigger cheat: %s", sMethod);
                 SMAC_Ban(client, "AutoTrigger Detection: %s", sMethod);
@@ -191,7 +191,7 @@ void AutoTrigger_Detected(int client,int method)
             }
         }
 
-        CloseHandle(info);
+        delete info;
 
         g_iDetections[method][client] = 0;
     }

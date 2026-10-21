@@ -71,7 +71,7 @@ public void OnClientDisconnect(int client)
 
 public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    int client = GetClientOfUserId(event.GetInt("userid"));
 
     if (IS_CLIENT(client) && !IsFakeClient(client))
     {
@@ -184,13 +184,14 @@ void SendMsgFadeUser(int client,int duration)
     players[0] = client;
 
     Handle bf = StartMessageEx(msgFadeUser, players, 1);
-    BfWriteShort(bf, (duration > 0) ? duration : 50); // duration
-    BfWriteShort(bf, (duration > 0) ? 1000 : 0); // hold time
-    BfWriteShort(bf, FFADE_IN|FFADE_PURGE);
-    BfWriteByte(bf, 255); // r
-    BfWriteByte(bf, 255); // g
-    BfWriteByte(bf, 255); // b
-    BfWriteByte(bf, 255); // a
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteShort((duration > 0) ? duration : 50); // duration
+    bfWrite.WriteShort((duration > 0) ? 1000 : 0); // hold time
+    bfWrite.WriteShort(FFADE_IN|FFADE_PURGE);
+    bfWrite.WriteByte(255); // r
+    bfWrite.WriteByte(255); // g
+    bfWrite.WriteByte(255); // b
+    bfWrite.WriteByte(255); // a
 
     EndMessage();
 }

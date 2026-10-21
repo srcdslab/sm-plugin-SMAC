@@ -39,8 +39,8 @@ public Plugin myinfo =
 #define SMOKE_FADETIME	15.0	// Seconds until a smoke begins to fade away
 #define SMOKE_RADIUS	2025	// (45^2) Radius to check for a player inside a smoke cloud
 
-Handle g_hSmokeLoop = INVALID_HANDLE;
-Handle g_hSmokes = INVALID_HANDLE;
+Handle g_hSmokeLoop = null;
+ArrayList g_hSmokes = null;
 bool g_bIsInSmoke[MAXPLAYERS+1];
 int g_iRoundCount;
 
@@ -58,7 +58,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-    g_hSmokes = CreateArray(3);
+    g_hSmokes = new ArrayList(3);
 
     // Hooks.
     HookEvent("smokegrenade_detonate", Event_SmokeDetonate, EventHookMode_Post);
@@ -73,7 +73,7 @@ public void OnMapEnd()
 
 public void OnClientPutInServer(int client)
 {
-    if (g_hSmokeLoop != INVALID_HANDLE)
+    if (g_hSmokeLoop != null)
     {
         SDKHook(client, SDKHook_SetTransmit, Hook_SetTransmit);
     }
@@ -87,12 +87,12 @@ public void OnClientDisconnect(int client)
 public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroadcast)
 {
     /* Delay immersion tests until smoke is fully deployed. */
-    Handle hPack;
+    DataPack hPack;
     CreateDataTimer(SMOKE_DELAYTIME, Timer_SmokeDeployed, hPack, TIMER_FLAG_NO_MAPCHANGE);
-    WritePackCell(hPack, g_iRoundCount);
-    WritePackFloat(hPack, GetEventFloat(event, "x"));
-    WritePackFloat(hPack, GetEventFloat(event, "y"));
-    WritePackFloat(hPack, GetEventFloat(event, "z"));
+    hPack.WriteCell(g_iRoundCount);
+    hPack.WriteFloat(event.GetFloat("x"));
+    hPack.WriteFloat(event.GetFloat("y"));
+    hPack.WriteFloat(event.GetFloat("z"));
 
     CreateTimer(SMOKE_FADETIME, Timer_SmokeEnded, g_iRoundCount, TIMER_FLAG_NO_MAPCHANGE);
     return Plugin_Continue;
@@ -106,19 +106,19 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
     return Plugin_Continue;
 }
 
-public Action Timer_SmokeDeployed(Handle timer, Handle hPack)
+public Action Timer_SmokeDeployed(Handle timer, DataPack hPack)
 {
-    ResetPack(hPack);
+    hPack.Reset();
 	
     /* Make sure the smoke still exists. */
-    if (g_iRoundCount == ReadPackCell(hPack))
+    if (g_iRoundCount == hPack.ReadCell())
     {
         float vSmoke[3];
-        vSmoke[0] = ReadPackFloat(hPack);
-        vSmoke[1] = ReadPackFloat(hPack);
-        vSmoke[2] = ReadPackFloat(hPack);
+        vSmoke[0] = hPack.ReadFloat();
+        vSmoke[1] = hPack.ReadFloat();
+        vSmoke[2] = hPack.ReadFloat();
 
-        PushArrayArray(g_hSmokes, vSmoke);
+        g_hSmokes.PushArray(vSmoke);
 
         AntiSmoke_HookAll();
     }
@@ -132,12 +132,12 @@ public Action Timer_SmokeEnded(Handle timer, any iRoundCount)
     if (g_iRoundCount == iRoundCount)
     {
         /* If this was the last active smoke, unhook everything. */
-        if (GetArraySize(g_hSmokes))
+        if (g_hSmokes.Length)
         {
-            RemoveFromArray(g_hSmokes, 0);
+            g_hSmokes.Erase(0);
         }
 
-        if (!GetArraySize(g_hSmokes))
+        if (!g_hSmokes.Length)
         {
             AntiSmoke_UnhookAll();
         }
@@ -158,9 +158,9 @@ public Action Timer_SmokeCheck(Handle timer)
             GetClientAbsOrigin(i, vClient);
             g_bIsInSmoke[i] = false;
 
-            for (int idx = 0; idx < GetArraySize(g_hSmokes); idx++)
+            for (int idx = 0; idx < g_hSmokes.Length; idx++)
             {
-                GetArrayArray(g_hSmokes, idx, vSmoke);
+                g_hSmokes.GetArray(idx, vSmoke);
 
                 if (GetVectorDistance(vClient, vSmoke, true) < SMOKE_RADIUS)
                 {
@@ -187,7 +187,7 @@ public Action Hook_SetTransmit(int entity, int client)
 
 void AntiSmoke_HookAll()
 {
-    if (g_hSmokeLoop != INVALID_HANDLE)
+    if (g_hSmokeLoop != null)
     {
         return;
     }
@@ -205,13 +205,12 @@ void AntiSmoke_HookAll()
 
 void AntiSmoke_UnhookAll()
 {
-    if (g_hSmokeLoop == INVALID_HANDLE)
+    if (g_hSmokeLoop == null)
     {
         return;
     }
     
-    KillTimer(g_hSmokeLoop);
-    g_hSmokeLoop = INVALID_HANDLE;
+    delete g_hSmokeLoop;
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -222,5 +221,5 @@ void AntiSmoke_UnhookAll()
         }
     }
 
-    ClearArray(g_hSmokes);
+    g_hSmokes.Clear();
 }

@@ -39,7 +39,7 @@ public Plugin myinfo =
 #define ESEA_QUERY		"index.php?s=support&d=ban_list&type=1&format=csv"
 
 ConVar g_hCvarKick;
-Handle g_hBanlist = INVALID_HANDLE;
+StringMap g_hBanlist = null;
 
 /* Plugin Functions */
 public void OnPluginStart()
@@ -50,7 +50,7 @@ public void OnPluginStart()
     g_hCvarKick = SMAC_CreateConVar("smac_esea_kick", "1", "Automatically kick players on the ESEA banlist.", 0, true, 0.0, true, 1.0);
 
     // Initialize.
-    g_hBanlist = CreateTrie();
+    g_hBanlist = new StringMap();
 
     ESEA_DownloadBanlist();
 }
@@ -68,15 +68,15 @@ public void OnClientAuthorized(int client, const char[] auth)
 
     bool bShouldLog;
 
-    if (GetTrieValue(g_hBanlist, sAuthID, bShouldLog) && SMAC_CheatDetected(client, Detection_GlobalBanned_ESEA, INVALID_HANDLE) == Plugin_Continue)
+    if (g_hBanlist.GetValue(sAuthID, bShouldLog) && SMAC_CheatDetected(client, Detection_GlobalBanned_ESEA, null) == Plugin_Continue)
     {
         if (bShouldLog)
         {
             SMAC_PrintAdminNotice("%N | %s | ESEA Ban", client, sAuthID);
-            SetTrieValue(g_hBanlist, sAuthID, 0);
+            g_hBanlist.SetValue(sAuthID, 0);
         }
 
-        if (GetConVarBool(g_hCvarKick))
+        if (g_hCvarKick.BoolValue)
         {
             if (bShouldLog)
             {
@@ -113,7 +113,7 @@ void ESEA_ParseBan(char[] baninfo)
     int length = FindCharInString(baninfo[3], '"') + 9;
     FormatEx(sAuthID, length, "STEAM_0:%s", baninfo[3]);
 
-    SetTrieValue(g_hBanlist, sAuthID, 1);
+    g_hBanlist.SetValue(sAuthID, 1);
 }
 
 public void OnSocketConnected(Handle socket, any arg)
@@ -207,7 +207,7 @@ public void OnSocketReceive(Handle socket, char[] data, const int size, any arg)
 
 public void OnSocketDisconnected(Handle socket, any arg)
 {
-    CloseHandle(socket);
+    delete socket;
 
     // Check all players against the new list.
     char sAuthID[MAX_AUTHID_LENGTH];
@@ -223,5 +223,5 @@ public void OnSocketDisconnected(Handle socket, any arg)
 
 public void OnSocketError(Handle socket, const int errorType, const int errorNum, any arg)
 {
-    CloseHandle(socket);
+    delete socket;
 }

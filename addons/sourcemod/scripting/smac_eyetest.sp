@@ -219,18 +219,18 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 
         g_fDetectedTime[client] = GetGameTime() + 30.0;
 
-        Handle info = CreateKeyValues("");
-        KvSetNum(info, "cmdnum", cmdnum);
-        KvSetNum(info, "prevcmdnum", g_iPrevCmdNum[client]);
-        KvSetNum(info, "tickcount", tickcount);
-        KvSetNum(info, "prevtickcount", g_iPrevTickCount[client]);
-        KvSetNum(info, "gametickcount", GetGameTickCount());
+        KeyValues info = new KeyValues("");
+        info.SetNum("cmdnum", cmdnum);
+        info.SetNum("prevcmdnum", g_iPrevCmdNum[client]);
+        info.SetNum("tickcount", tickcount);
+        info.SetNum("prevtickcount", g_iPrevTickCount[client]);
+        info.SetNum("gametickcount", GetGameTickCount());
 
         if (SMAC_CheatDetected(client, Detection_UserCmdReuse, info) == Plugin_Continue)
         {
             SMAC_PrintAdminNotice("%t", "SMAC_EyetestDetected", client);
 
-            if (GetConVarBool(g_hCvarBan))
+            if (g_hCvarBan.BoolValue)
             {
                 SMAC_LogAction(client, "was banned for reusing old movement commands. CmdNum: %d PrevCmdNum: %d | [%d:%d:%d]", 
                                     cmdnum, g_iPrevCmdNum[client], g_iPrevTickCount[client], tickcount, GetGameTickCount());
@@ -243,7 +243,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
             }
         }
 
-        CloseHandle(info);
+        delete info;
         return Plugin_Handled;
     }
 
@@ -262,17 +262,17 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
         {
             g_fDetectedTime[client] = GetGameTime() + 30.0;
 
-            Handle info = CreateKeyValues("");
-            KvSetNum(info, "cmdnum", cmdnum);
-            KvSetNum(info, "tickcount", tickcount);
-            KvSetNum(info, "prevtickcount", g_iPrevTickCount[client]);
-            KvSetNum(info, "gametickcount", GetGameTickCount());
+            KeyValues info = new KeyValues("");
+            info.SetNum("cmdnum", cmdnum);
+            info.SetNum("tickcount", tickcount);
+            info.SetNum("prevtickcount", g_iPrevTickCount[client]);
+            info.SetNum("gametickcount", GetGameTickCount());
 
             if (SMAC_CheatDetected(client, Detection_UserCmdTamperingTickcount, info) == Plugin_Continue)
             {
                 SMAC_PrintAdminNotice("%t", "SMAC_EyetestDetected", client);
 
-                if (GetConVarBool(g_hCvarBan))
+                if (g_hCvarBan.BoolValue)
                 {
                     SMAC_LogAction(client, "was banned for tampering with an old movement command (tickcount). CmdNum: %d | [%d:%d:%d]", 
                                         cmdnum, g_iPrevTickCount[client], tickcount, GetGameTickCount());
@@ -285,25 +285,25 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
                 }
             }
 
-            CloseHandle(info);
+            delete info;
             return Plugin_Handled;
         }
 
         // Check for specific buttons in order to avoid compatibility issues with server-side plugins.
-        if (!GetConVarBool(g_hCvarCompat) && ((g_iPrevButtons[client] ^ buttons) & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT|IN_SCORE)))
+        if (!g_hCvarCompat.BoolValue && ((g_iPrevButtons[client] ^ buttons) & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT|IN_SCORE)))
         {
             g_fDetectedTime[client] = GetGameTime() + 30.0;
 
-            Handle info = CreateKeyValues("");
-            KvSetNum(info, "cmdnum", cmdnum);
-            KvSetNum(info, "prevbuttons", g_iPrevButtons[client]);
-            KvSetNum(info, "buttons", buttons);
+            KeyValues info = new KeyValues("");
+            info.SetNum("cmdnum", cmdnum);
+            info.SetNum("prevbuttons", g_iPrevButtons[client]);
+            info.SetNum("buttons", buttons);
 
             if (SMAC_CheatDetected(client, Detection_UserCmdTamperingButtons, info) == Plugin_Continue)
             {
                 SMAC_PrintAdminNotice("%t", "SMAC_EyetestDetected", client);
 
-                if (GetConVarBool(g_hCvarBan))
+                if (g_hCvarBan.BoolValue)
                 {
                     SMAC_LogAction(client, "was banned for tampering with an old movement command (buttons). CmdNum: %d | [%d:%d]", cmdnum, g_iPrevButtons[client], buttons);
                     SMAC_Ban(client, "Eye Test Violation");
@@ -314,7 +314,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
                 }
             }
 
-            CloseHandle(info);
+            delete info;
             return Plugin_Handled;
         }
 
@@ -445,15 +445,15 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     // Strict bot checking - https://bugs.alliedmods.net/show_bug.cgi?id=5294
     char sAuthID[MAX_AUTHID_LENGTH];
 
-    Handle info = CreateKeyValues("");
-    KvSetVector(info, "angles", angles);
+    KeyValues info = new KeyValues("");
+    info.SetVector("angles", angles);
 
     if (GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID), false) && !StrEqual(sAuthID, "BOT") 
             && SMAC_CheatDetected(client, Detection_Eyeangles, info) == Plugin_Continue)
     {
         SMAC_PrintAdminNotice("%t", "SMAC_EyetestDetected", client);
 
-        if (GetConVarBool(g_hCvarBan))
+        if (g_hCvarBan.BoolValue)
         {
             SMAC_LogAction(client, "was banned for cheating with their eye angles. Eye Angles: %.0f %.0f %.0f", angles[0], angles[1], angles[2]);
             SMAC_Ban(client, "Eye Test Violation");
@@ -464,7 +464,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
         }
     }
 
-    CloseHandle(info);
+    delete info;
     return Plugin_Continue;
 }
 

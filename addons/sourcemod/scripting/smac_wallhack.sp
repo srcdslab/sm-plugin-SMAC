@@ -53,7 +53,7 @@ bool g_bEnabled, g_bFarEspEnabled;
 int g_iMaxTraces;
 
 int g_iDownloadTable = INVALID_STRING_TABLE;
-Handle g_hIgnoreSounds = INVALID_HANDLE;
+StringMap g_hIgnoreSounds = null;
 
 int g_iPVSCache[MAXPLAYERS+1][MAXPLAYERS+1];
 int g_iPVSSoundCache[MAXPLAYERS+1][MAXPLAYERS+1];
@@ -100,30 +100,30 @@ public void OnPluginStart()
 
     hCvar = SMAC_CreateConVar("smac_wallhack", "1", "Enable Anti-Wallhack. This will increase your server's CPU usage.", 0, true, 0.0, true, 1.0);
     OnSettingsChanged(hCvar, "", "");
-    HookConVarChange(hCvar, OnSettingsChanged);
+    hCvar.AddChangeHook(OnSettingsChanged);
 
     hCvar = CreateConVar("smac_wallhack_maxtraces", "1280", "Max amount of traces that can be executed in one tick.", 0, true, 1.0);
     OnMaxTracesChanged(hCvar, "", "");
-    HookConVarChange(hCvar, OnMaxTracesChanged);
+    hCvar.AddChangeHook(OnMaxTracesChanged);
 
     // Clients use these for prediction. Only change cvars if they aren't in the server's config.
     g_iTickRate = RoundToFloor(1.0 / GetTickInterval());
 
-    if ((hCvar = FindConVar("sv_minupdaterate")) != INVALID_HANDLE && IsConVarDefault(hCvar))
+    if ((hCvar = FindConVar("sv_minupdaterate")) != null && IsConVarDefault(hCvar))
     {
-        SetConVarInt(hCvar, g_iTickRate);
+        hCvar.SetInt(g_iTickRate);
     }
-    if ((hCvar = FindConVar("sv_maxupdaterate")) != INVALID_HANDLE && IsConVarDefault(hCvar))
+    if ((hCvar = FindConVar("sv_maxupdaterate")) != null && IsConVarDefault(hCvar))
     {
-        SetConVarInt(hCvar, g_iTickRate);
+        hCvar.SetInt(g_iTickRate);
     }
-    if ((hCvar = FindConVar("sv_client_min_interp_ratio")) != INVALID_HANDLE && IsConVarDefault(hCvar))
+    if ((hCvar = FindConVar("sv_client_min_interp_ratio")) != null && IsConVarDefault(hCvar))
     {
-        SetConVarInt(hCvar, 0);
+        hCvar.SetInt(0);
     }
-    if ((hCvar = FindConVar("sv_client_max_interp_ratio")) != INVALID_HANDLE && IsConVarDefault(hCvar))
+    if ((hCvar = FindConVar("sv_client_max_interp_ratio")) != null && IsConVarDefault(hCvar))
     {
-        SetConVarInt(hCvar, 1);
+        hCvar.SetInt(1);
 	}
     
     // Initialize.
@@ -142,15 +142,15 @@ public void OnPluginStart()
     }
 
     // Default sounds to ignore in sound hook.
-    g_hIgnoreSounds = CreateTrie();
-    SetTrieValue(g_hIgnoreSounds, "buttons/button14.wav", 1);
-    SetTrieValue(g_hIgnoreSounds, "buttons/combine_button7.wav", 1);
+    g_hIgnoreSounds = new StringMap();
+    g_hIgnoreSounds.SetValue("buttons/button14.wav", 1);
+    g_hIgnoreSounds.SetValue("buttons/combine_button7.wav", 1);
 
     switch (g_Game)
     {
         case Game_L4D2:
         {
-            SetTrieValue(g_hIgnoreSounds, "UI/Pickup_GuitarRiff10.wav", 1);
+            g_hIgnoreSounds.SetValue("UI/Pickup_GuitarRiff10.wav", 1);
         }
     }
 }
@@ -200,7 +200,7 @@ public void OnConfigsExecuted()
 
         if (strncmp(sBuffer, "sound", 5) == 0)
         {
-            SetTrieValue(g_hIgnoreSounds, sBuffer[6], 1);
+            g_hIgnoreSounds.SetValue(sBuffer[6], 1);
         }
     }
 }
@@ -280,7 +280,7 @@ public void OnSettingsChanged(ConVar convar, char[] oldValue, char[] newValue)
 
 public void OnMaxTracesChanged(ConVar convar, char[] oldValue, char[] newValue)
 {
-    g_iMaxTraces = GetConVarInt(convar);
+    g_iMaxTraces = convar.IntValue;
 }
 
 void Wallhack_Enable()
@@ -445,7 +445,7 @@ public Action Hook_NormalSound(int clients[MAXPLAYERS], int& numClients, char sa
     /* Emit sounds to clients who aren't being transmitted the entity. */
     int dummy;
 
-    if (!entity || !IsValidEdict(entity) || GetTrieValue(g_hIgnoreSounds, sample, dummy))
+    if (!entity || !IsValidEdict(entity) || g_hIgnoreSounds.GetValue(sample, dummy))
     {
         return Plugin_Continue;
     }
@@ -550,7 +550,7 @@ public void TF2_Hook_FlagDrop(const char[] output, int caller, int activator, fl
 
 public Action TF2_Event_Inventory(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    int client = GetClientOfUserId(event.GetInt("userid"));
 
     if (IS_CLIENT(client))
     {
@@ -570,7 +570,7 @@ public Action TF2_Event_Inventory(Event event, const char[] name, bool dontBroad
 public Action L4D_Event_GhostSpawnTime(Event event, const char[] name, bool dontBroadcast)
 {
     // There is no event for observer -> ghost mode, so we must count it down ourselves.
-    CreateTimer(GetEventInt(event, "spawntime") + 0.5, Timer_PlayerStateChanged, GetEventInt(event, "userid"), TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(event.GetInt("spawntime") + 0.5, Timer_PlayerStateChanged, event.GetInt("userid"), TIMER_FLAG_NO_MAPCHANGE);
     return Plugin_Continue;
 }
 
@@ -1229,16 +1229,18 @@ void SendRadarSpotted()
             GetClientAbsOrigin(i, vOrigin);
             GetClientAbsAngles(i, vAngles);
 
-            BfWriteByte(bf, i);
-            BfWriteSBitLong(bf, RoundToNearest(vOrigin[0] / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest(vOrigin[1] / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest((vOrigin[2] - MT_GetRandomFloat(500.0, 1000.0)) / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest(vAngles[1]), 9);
+            BfWrite bfWrite = UserMessageToBfWrite(bf);
+            bfWrite.WriteByte(i);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[0] / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[1] / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest((vOrigin[2] - MT_GetRandomFloat(500.0, 1000.0)) / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vAngles[1]), 9);
             count++;
         }
     }
 
-    BfWriteByte(bf, 0);
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteByte(0);
     EndMessage();
 }
 
@@ -1279,14 +1281,16 @@ void SendRadarTeam(int team)
         GetClientAbsOrigin(client, vOrigin);
         GetClientAbsAngles(client, vAngles);
         
-        BfWriteByte(bf, client);
-        BfWriteSBitLong(bf, RoundToNearest(vOrigin[0] / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest(vOrigin[1] / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest(vOrigin[2] / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest(vAngles[1]), 9);
+        BfWrite bfWrite = UserMessageToBfWrite(bf);
+        bfWrite.WriteByte(client);
+        BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[0] / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[1] / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[2] / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest(vAngles[1]), 9);
     }
 
-    BfWriteByte(bf, 0);
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteByte(0);
     EndMessage();
 }
 
@@ -1334,11 +1338,12 @@ void SendRadarFakeTeam(int team)
     {
         GetClientAbsOrigin(iReceivers[iReceiver++], vOrigin);
 
-        BfWriteByte(bf, iSenders[i]);
-        BfWriteSBitLong(bf, RoundToNearest((vOrigin[0] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest((vOrigin[1] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest((vOrigin[2] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
-        BfWriteSBitLong(bf, RoundToNearest(MT_GetRandomFloat(-180.0, 180.0)), 9);
+        BfWrite bfWrite = UserMessageToBfWrite(bf);
+        bfWrite.WriteByte(iSenders[i]);
+        BfWriteSBitLong(bfWrite, RoundToNearest((vOrigin[0] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest((vOrigin[1] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest((vOrigin[2] + MT_GetRandomFloat(-1000.0, 1000.0)) / 4.0), 13);
+        BfWriteSBitLong(bfWrite, RoundToNearest(MT_GetRandomFloat(-180.0, 180.0)), 9);
 
         if (iReceiver >= numReceivers)
         {
@@ -1346,7 +1351,8 @@ void SendRadarFakeTeam(int team)
         }
     }
 
-    BfWriteByte(bf, 0);
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteByte(0);
     EndMessage();
 }
 
@@ -1375,13 +1381,14 @@ void SendRadarClient(int client,int flags)
     GetClientAbsOrigin(client, vOrigin);
     GetClientAbsAngles(client, vAngles);
 
-    BfWriteByte(bf, client);
-    BfWriteSBitLong(bf, RoundToNearest(vOrigin[0] / 4.0), 13);
-    BfWriteSBitLong(bf, RoundToNearest(vOrigin[1] / 4.0), 13);
-    BfWriteSBitLong(bf, RoundToNearest((vOrigin[2] - MT_GetRandomFloat(500.0, 1000.0)) / 4.0), 13);
-    BfWriteSBitLong(bf, RoundToNearest(vAngles[1]), 9);
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteByte(client);
+    BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[0] / 4.0), 13);
+    BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[1] / 4.0), 13);
+    BfWriteSBitLong(bfWrite, RoundToNearest((vOrigin[2] - MT_GetRandomFloat(500.0, 1000.0)) / 4.0), 13);
+    BfWriteSBitLong(bfWrite, RoundToNearest(vAngles[1]), 9);
 
-    BfWriteByte(bf, 0);
+    bfWrite.WriteByte(0);
     EndMessage();
 }
 
@@ -1415,15 +1422,17 @@ void SendRadarObservers()
             GetClientAbsOrigin(i, vOrigin);
             GetClientAbsAngles(i, vAngles);
 
-            BfWriteByte(bf, i);
-            BfWriteSBitLong(bf, RoundToNearest(vOrigin[0] / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest(vOrigin[1] / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest(vOrigin[2] / 4.0), 13);
-            BfWriteSBitLong(bf, RoundToNearest(vAngles[1]), 9);
+            BfWrite bfWrite = UserMessageToBfWrite(bf);
+            bfWrite.WriteByte(i);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[0] / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[1] / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vOrigin[2] / 4.0), 13);
+            BfWriteSBitLong(bfWrite, RoundToNearest(vAngles[1]), 9);
             count++;
         }
     }
 
-    BfWriteByte(bf, 0);
+    BfWrite bfWrite = UserMessageToBfWrite(bf);
+    bfWrite.WriteByte(0);
     EndMessage();
 }
