@@ -84,7 +84,7 @@ public Action Timer_AddTicks(Handle timer)
             {
                 if (++g_iDetections[i] >= MAX_DETECTIONS && GetGameTime() > g_fDetectedTime[i])
                 {
-                    if (SMAC_CheatDetected(i, Detection_Speedhack, INVALID_HANDLE) == Plugin_Continue)
+                    if (SMAC_CheatDetected(i, Detection_Speedhack, null) == Plugin_Continue)
                     {
                         SMAC_PrintAdminNotice("%t", "SMAC_SpeedhackDetected", i);
 

@@ -92,8 +92,8 @@ stock void GetPluginBasename(Handle plugin, char[] buffer,int maxlength)
 stock bool IsConVarDefault(ConVar convar)
 {
     char sDefaultVal[16], sCurrentVal[16];
-    GetConVarDefault(convar, sDefaultVal, sizeof(sDefaultVal));
-    GetConVarString(convar, sCurrentVal, sizeof(sCurrentVal));
+    convar.GetDefault(sDefaultVal, sizeof(sDefaultVal));
+    convar.GetString(sCurrentVal, sizeof(sCurrentVal));
 
     return StrEqual(sDefaultVal, sCurrentVal);
 }
@@ -309,22 +309,22 @@ stock float MT_GetRandomFloat(float min, float max)
     return GetURandomFloat() * (max - min) + min;
 }
 
-stock void BfWriteSBitLong(Handle bf,int data,int numBits)
+stock void BfWriteSBitLong(BfWrite bf, int data, int numBits)
 {
     for (int i = 0; i < numBits; i++)
     {
-        BfWriteBool(bf, !!(data & (1 << i)));
+        bf.WriteBool(!!(data & (1 << i)));
     }
 }
 
-stock int BfReadSBitLong(Handle bf, int numBits)
+stock int BfReadSBitLong(BfRead bf, int numBits)
 {
     int[] bits = new int[numBits];
     int ret, i;
 
     for (i = 0; i < numBits; i++)
     {
-        bits[i] = BfReadBool(bf);
+        bits[i] = bf.ReadBool();
     }
 
     ret = bits[numBits-1] ? -1 : 0;

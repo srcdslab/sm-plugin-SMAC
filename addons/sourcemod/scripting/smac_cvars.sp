@@ -45,8 +45,8 @@ public Plugin myinfo =
 #define MAX_REQUERY_ATTEMPTS 4
 
 // cvar data
-Handle g_hCvarTrie = INVALID_HANDLE;
-Handle g_hCvarADT = INVALID_HANDLE;
+StringMap g_hCvarTrie = null;
+ArrayList g_hCvarADT = null;
 int g_iADTSize;
 
 // client data
@@ -54,7 +54,7 @@ Handle g_hTimer[MAXPLAYERS+1];
 int g_iRequeryCount[MAXPLAYERS+1];
 
 int g_iADTIndex[MAXPLAYERS+1] = {-1, ...};
-Handle g_hCurDataTrie[MAXPLAYERS+1];
+StringMap g_hCurDataTrie[MAXPLAYERS+1];
 
 // plugin state
 bool g_bLateLoad;
@@ -71,8 +71,8 @@ public void OnPluginStart()
 {
     LoadTranslations("smac.phrases");
     
-    g_hCvarTrie = CreateTrie();
-    g_hCvarADT = CreateArray();
+    g_hCvarTrie = new StringMap();
+    g_hCvarADT = new ArrayList();
     
     // Check for plugins first.
     AddCvar(Order_First, "0penscript",                  Comp_NonExist, Action_Ban);
@@ -183,10 +183,10 @@ public void OnClientDisconnect(int client)
 {
     if (!IsFakeClient(client))
     {
-        g_hCurDataTrie[client] = INVALID_HANDLE;
+        g_hCurDataTrie[client] = null;
         g_iADTIndex[client] = -1;
         g_iRequeryCount[client] = 0;
-        SetTimer(g_hTimer[client], INVALID_HANDLE);
+        SetTimer(g_hTimer[client], null);
     }
 }
 
@@ -248,52 +248,52 @@ bool AddCvar(CvarOrder COrder, char[] sCvar, CvarComp CCompType, CvarAction CAct
     {
         hCvar = FindConVar(sCvar);
 
-        if (hCvar == INVALID_HANDLE || !(GetConVarFlags(hCvar) & FCVAR_REPLICATED))
+        if (hCvar == null || !(hCvar.Flags & FCVAR_REPLICATED))
         {
             return false;
         }
         
-        GetConVarString(hCvar, sNewValue, sizeof(sNewValue));
+        hCvar.GetString(sNewValue, sizeof(sNewValue));
     }
     else
     {
         strcopy(sNewValue, sizeof(sNewValue), sValue);
     }
 
-    Handle hDataTrie;
+    StringMap hDataTrie;
 
-    if (GetTrieValue(g_hCvarTrie, sCvar, hDataTrie))
+    if (g_hCvarTrie.GetValue(sCvar, hDataTrie))
     {
         //SetTrieValue(hDataTrie, Cvar_Order, COrder);
-        SetTrieString(hDataTrie, Cvar_Name, sCvar);
-        SetTrieValue(hDataTrie, Cvar_CompType, CCompType);
-        SetTrieValue(hDataTrie, Cvar_Action, CAction);
-        SetTrieString(hDataTrie, Cvar_Value, sNewValue);
-        SetTrieString(hDataTrie, Cvar_Value2, sValue2);
+        hDataTrie.SetString(Cvar_Name, sCvar);
+        hDataTrie.SetValue(Cvar_CompType, CCompType);
+        hDataTrie.SetValue(Cvar_Action, CAction);
+        hDataTrie.SetString(Cvar_Value, sNewValue);
+        hDataTrie.SetString(Cvar_Value2, sValue2);
         //SetTrieValue(hDataTrie, Cvar_ReplicatedTime, 0);
     }
     else
     {
         // Setup cvar data
-        hDataTrie = CreateTrie();
+        hDataTrie = new StringMap();
 
-        SetTrieValue(hDataTrie, Cvar_Order, COrder);
-        SetTrieString(hDataTrie, Cvar_Name, sCvar);
-        SetTrieValue(hDataTrie, Cvar_CompType, CCompType);
-        SetTrieValue(hDataTrie, Cvar_Action, CAction);
-        SetTrieString(hDataTrie, Cvar_Value, sNewValue);
-        SetTrieString(hDataTrie, Cvar_Value2, sValue2);
-        SetTrieValue(hDataTrie, Cvar_ReplicatedTime, 0);
+        hDataTrie.SetValue(Cvar_Order, COrder);
+        hDataTrie.SetString(Cvar_Name, sCvar);
+        hDataTrie.SetValue(Cvar_CompType, CCompType);
+        hDataTrie.SetValue(Cvar_Action, CAction);
+        hDataTrie.SetString(Cvar_Value, sNewValue);
+        hDataTrie.SetString(Cvar_Value2, sValue2);
+        hDataTrie.SetValue(Cvar_ReplicatedTime, 0);
 
         // Add cvar to lists
-        SetTrieValue(g_hCvarTrie, sCvar, hDataTrie);
-        PushArrayCell(g_hCvarADT, hDataTrie);
-        g_iADTSize = GetArraySize(g_hCvarADT);
+        g_hCvarTrie.SetValue(sCvar, hDataTrie);
+        g_hCvarADT.Push(hDataTrie);
+        g_iADTSize = g_hCvarADT.Length;
 
         // Begin replication
         if (CCompType == Comp_Replicated)
         {
-            HookConVarChange(hCvar, OnConVarChanged);
+            hCvar.AddChangeHook(OnConVarChanged);
             ReplicateToAll(hCvar, sNewValue);
         }
 
@@ -332,13 +332,13 @@ public Action Command_RemCvar(int client,int args)
 
 bool RemCvar(char[] sCvar)
 {
-    Handle hDataTrie;
+    StringMap hDataTrie;
     
     // Trie is case sensitive.
     StringToLower(sCvar);
     
     // Are you listed?
-    if (!GetTrieValue(g_hCvarTrie, sCvar, hDataTrie))
+    if (!g_hCvarTrie.GetValue(sCvar, hDataTrie))
     {
         return false;
     }
@@ -348,24 +348,24 @@ bool RemCvar(char[] sCvar)
     {
         if (g_hCurDataTrie[i] == hDataTrie)
         {
-            g_hCurDataTrie[i] = INVALID_HANDLE;
+            g_hCurDataTrie[i] = null;
         }
     }
 
     // Disable replication
     CvarComp SCCompType;
-    GetTrieValue(hDataTrie, Cvar_CompType, SCCompType);
+    hDataTrie.GetValue(Cvar_CompType, SCCompType);
 
     if (SCCompType == Comp_Replicated)
     {
-        UnhookConVarChange(FindConVar(sCvar), OnConVarChanged);
+        FindConVar(sCvar).RemoveChangeHook(OnConVarChanged);
     }
 
     // Remove relevant entries
-    RemoveFromTrie(g_hCvarTrie, sCvar);
-    RemoveFromArray(g_hCvarADT, FindValueInArray(g_hCvarADT, hDataTrie));
-    g_iADTSize = GetArraySize(g_hCvarADT);
-    CloseHandle(hDataTrie);
+    g_hCvarTrie.Remove(sCvar);
+    g_hCvarADT.Erase(g_hCvarADT.FindValue(hDataTrie));
+    g_iADTSize = g_hCvarADT.Length;
+    delete hDataTrie;
 
     return true;
 }
@@ -384,7 +384,7 @@ public Action Timer_QueryNextCvar(Handle timer, any client)
         g_iADTIndex[client] = 0;
     }
 
-    Handle hDataTrie = GetArrayCell(g_hCvarADT, g_iADTIndex[client]);
+    StringMap hDataTrie = g_hCvarADT.Get(g_iADTIndex[client]);
 
     if (IsReplicating(hDataTrie))
     {
@@ -393,7 +393,7 @@ public Action Timer_QueryNextCvar(Handle timer, any client)
 
     // Attempt to query it
     char sCvar[MAX_CVAR_NAME_LEN];
-    GetTrieString(hDataTrie, Cvar_Name, sCvar, sizeof(sCvar));
+    hDataTrie.GetString(Cvar_Name, sCvar, sizeof(sCvar));
 
     if (QueryClientConVar(client, sCvar, OnConVarQueryFinished, GetClientSerial(client)) == QUERYCOOKIE_FAILED)
     {
@@ -411,16 +411,16 @@ public Action Timer_RequeryCvar(Handle timer, any client)
     // Have we had enough?
     if (++g_iRequeryCount[client] > MAX_REQUERY_ATTEMPTS)
     {
-        g_hTimer[client] = INVALID_HANDLE;
+        g_hTimer[client] = null;
         KickClient(client, "%t", "SMAC_FailedToReply");
         return Plugin_Stop;
     }
 
     // Did the query get invalidated?
-    if (g_hCurDataTrie[client] != INVALID_HANDLE && !IsReplicating(g_hCurDataTrie[client]))
+    if (g_hCurDataTrie[client] != null && !IsReplicating(g_hCurDataTrie[client]))
     {
         char sCvar[MAX_CVAR_NAME_LEN];
-        GetTrieString(g_hCurDataTrie[client], Cvar_Name, sCvar, sizeof(sCvar));
+        g_hCurDataTrie[client].GetString(Cvar_Name, sCvar, sizeof(sCvar));
 
         if (QueryClientConVar(client, sCvar, OnConVarQueryFinished, GetClientSerial(client)) != QUERYCOOKIE_FAILED)
         {
@@ -442,28 +442,28 @@ public void OnConVarQueryFinished(QueryCookie cookie,int client, ConVarQueryResu
     
     // Trie is case sensitive.
     char sCvar[MAX_CVAR_NAME_LEN];
-    Handle hDataTrie;
+    StringMap hDataTrie;
 
     strcopy(sCvar, sizeof(sCvar), cvarName);
     StringToLower(sCvar);
 
     // Did we expect this query?
-    if (!GetTrieValue(g_hCvarTrie, sCvar, hDataTrie) || hDataTrie != g_hCurDataTrie[client])
+    if (!g_hCvarTrie.GetValue(sCvar, hDataTrie) || hDataTrie != g_hCurDataTrie[client])
     {
         return;
     }
 
     // Prepare the next query.
-    g_hCurDataTrie[client] = INVALID_HANDLE;
+    g_hCurDataTrie[client] = null;
     g_iRequeryCount[client] = 0;
     SetTimer(g_hTimer[client], CreateTimer(0.1, Timer_QueryNextCvar, client, TIMER_REPEAT));
 
     // Initialize data
     CvarComp SCCompType; 
     char sValue[MAX_CVAR_VALUE_LEN], sValue2[MAX_CVAR_VALUE_LEN], sKickMessage[255];
-    GetTrieValue(hDataTrie, Cvar_CompType, SCCompType);
-    GetTrieString(hDataTrie, Cvar_Value, sValue, sizeof(sValue));
-    GetTrieString(hDataTrie, Cvar_Value2, sValue2, sizeof(sValue2));
+    hDataTrie.GetValue(Cvar_CompType, SCCompType);
+    hDataTrie.GetString(Cvar_Value, sValue, sizeof(sValue));
+    hDataTrie.GetString(Cvar_Value2, sValue2, sizeof(sValue2));
 
     // Check query results
     if (result == ConVarQuery_Okay)
@@ -547,17 +547,17 @@ public void OnConVarQueryFinished(QueryCookie cookie,int client, ConVarQueryResu
 
     // The client failed relevant checks.
     CvarAction CAction;
-    GetTrieValue(hDataTrie, Cvar_Action, CAction);
+    hDataTrie.GetValue(Cvar_Action, CAction);
 
-    Handle info = CreateKeyValues("");
+    KeyValues info = new KeyValues("");
 
-    KvSetString(info, "cvar", sCvar);
-    KvSetNum(info, "comptype", view_as<int>(SCCompType));
-    KvSetNum(info, "actiontype", view_as<int>(CAction));
-    KvSetString(info, "cvarvalue", cvarValue);
-    KvSetString(info, "value", sValue);
-    KvSetString(info, "value2", sValue2);
-    KvSetNum(info, "result", view_as<int>(result));
+    info.SetString("cvar", sCvar);
+    info.SetNum("comptype", view_as<int>(SCCompType));
+    info.SetNum("actiontype", view_as<int>(CAction));
+    info.SetString("cvarvalue", cvarValue);
+    info.SetString("value", sValue);
+    info.SetString("value2", sValue2);
+    info.SetNum("result", view_as<int>(result));
 
     if (SMAC_CheatDetected(client, Detection_CvarViolation, info) == Plugin_Continue)
     {
@@ -592,29 +592,29 @@ public void OnConVarQueryFinished(QueryCookie cookie,int client, ConVarQueryResu
         }
     }
 
-    CloseHandle(info);
+    delete info;
 }
 
 public void OnConVarChanged(ConVar convar, char[] oldValue, char[] newValue)
 {
     char sCvar[MAX_CVAR_NAME_LEN];
-    Handle hDataTrie;
+    StringMap hDataTrie;
 
     convar.GetName(sCvar, sizeof(sCvar));
     StringToLower(sCvar);
 
-    if (!GetTrieValue(g_hCvarTrie, sCvar, hDataTrie))
+    if (!g_hCvarTrie.GetValue(sCvar, hDataTrie))
     {
         return;
     }
 
-    SetTrieString(hDataTrie, Cvar_Value, newValue);
-    SetTrieValue(hDataTrie, Cvar_ReplicatedTime, GetTime() + CVAR_REPLICATION_DELAY);
+    hDataTrie.SetString(Cvar_Value, newValue);
+    hDataTrie.SetValue(Cvar_ReplicatedTime, GetTime() + CVAR_REPLICATION_DELAY);
 
     // sv_cheats, if enabled, will false positive on client-side cheat commands.
     if (StrEqual(sCvar, "sv_cheats") && StringToInt(newValue) != 0)
     {
-        SetConVarInt(convar, 0, true, true);
+        convar.SetInt(0, true, true);
         return;
     }
 
@@ -624,18 +624,18 @@ public void OnConVarChanged(ConVar convar, char[] oldValue, char[] newValue)
 void ScrambleCvars()
 {
     Handle[][] hCvarADTs = new Handle[view_as<int>(Order_MAX)][g_iADTSize];
-    Handle hDataTrie;
+    StringMap hDataTrie;
     int iOrder, iADTIndex[view_as<int>(Order_MAX)];
 
     for (int i = 0; i < g_iADTSize; i++)
     {
-        hDataTrie = GetArrayCell(g_hCvarADT, i);
-        GetTrieValue(hDataTrie, Cvar_Order, iOrder);
+        hDataTrie = g_hCvarADT.Get(i);
+        hDataTrie.GetValue(Cvar_Order, iOrder);
 
         hCvarADTs[iOrder][iADTIndex[iOrder]++] = hDataTrie;
     }
 
-    ClearArray(g_hCvarADT);
+    g_hCvarADT.Clear();
 
     for (int i = 0; i < view_as<int>(Order_MAX); i++)
     {
@@ -645,16 +645,16 @@ void ScrambleCvars()
 
             for (int j = 0; j < iADTIndex[i]; j++)
             {
-                PushArrayCell(g_hCvarADT, hCvarADTs[i][j]);
+                g_hCvarADT.Push(hCvarADTs[i][j]);
             }
         }
     }
 }
 
-bool IsReplicating(Handle hDataTrie)
+bool IsReplicating(StringMap hDataTrie)
 {
     int iReplicatedTime;
-    GetTrieValue(hDataTrie, Cvar_ReplicatedTime, iReplicatedTime);
+    hDataTrie.GetValue(Cvar_ReplicatedTime, iReplicatedTime);
 
     return (iReplicatedTime > GetTime());
 }

@@ -40,7 +40,7 @@ ConVar g_hCvarRconPass = null;
 char g_sRconRealPass[128];
 bool g_bRconLocked = false;
 
-Handle g_hWhitelist = INVALID_HANDLE;
+StringMap g_hWhitelist = null;
 bool g_bSMrconLoaded = false;
 
 /* Plugin Functions */
@@ -48,10 +48,10 @@ public void OnPluginStart()
 {
     // Convars.
     g_hCvarRconPass = FindConVar("rcon_password");
-    HookConVarChange(g_hCvarRconPass, OnRconPassChanged);
+    g_hCvarRconPass.AddChangeHook(OnRconPassChanged);
     
     // SM RCon.
-    g_hWhitelist = CreateTrie();
+    g_hWhitelist = new StringMap();
     g_bSMrconLoaded = LibraryExists("smrcon");
     
     RegAdminCmd("smac_rcon_addip", Command_AddIP, ADMFLAG_ROOT, "Adds an IP address to the rcon whitelist.");
@@ -70,7 +70,7 @@ public void OnLibraryRemoved(const char[] name)
 {
     if (StrEqual(name, "smrcon"))
     {
-        ClearTrie(g_hWhitelist);
+        g_hWhitelist.Clear();
         g_bSMrconLoaded = false;
     }
 }
@@ -79,7 +79,7 @@ public void OnConfigsExecuted()
 {
     if (!g_bRconLocked)
     {
-        GetConVarString(g_hCvarRconPass, g_sRconRealPass, sizeof(g_sRconRealPass));
+        g_hCvarRconPass.GetString(g_sRconRealPass, sizeof(g_sRconRealPass));
         g_bRconLocked = true;
     }
 }
@@ -89,7 +89,7 @@ public void OnRconPassChanged(ConVar convar, char[] oldValue, char[] newValue)
     if (g_bRconLocked && !StrEqual(newValue, g_sRconRealPass))
     {
         SMAC_Log("Rcon password changed to \"%s\". Reverting back to original config value.", newValue);
-        SetConVarString(g_hCvarRconPass, g_sRconRealPass);
+        g_hCvarRconPass.SetString(g_sRconRealPass);
     }
 }
 
@@ -110,9 +110,9 @@ public Action Command_AddIP(int client,int args)
     char sIP[32];
     GetCmdArg(1, sIP, sizeof(sIP));
 
-    if (SetTrieValue(g_hWhitelist, sIP, 1, false))
+    if (g_hWhitelist.SetValue(sIP, 1, false))
     {
-        if (GetTrieSize(g_hWhitelist) == 1)
+        if (g_hWhitelist.Size == 1)
         {
             ReplyToCommand(client, "Rcon whitelist enabled.");
         }
@@ -144,11 +144,11 @@ public Action Command_RemoveIP(int client,int args)
     char sIP[32];
     GetCmdArg(1, sIP, sizeof(sIP));
 
-    if (RemoveFromTrie(g_hWhitelist, sIP))
+    if (g_hWhitelist.Remove(sIP))
     {
         ReplyToCommand(client, "You have successfully removed %s from the rcon whitelist.", sIP);
         
-        if (!GetTrieSize(g_hWhitelist))
+        if (!g_hWhitelist.Size)
         {
             ReplyToCommand(client, "Rcon whitelist disabled.");
         }
@@ -166,7 +166,7 @@ public Action SMRCon_OnAuth(int rconId, const char[] address, const char[] passw
     // Check against whitelist before continuing.
     int dummy;
 
-    if (!GetTrieSize(g_hWhitelist) || GetTrieValue(g_hWhitelist, address, dummy))
+    if (!g_hWhitelist.Size || g_hWhitelist.GetValue(address, dummy))
     {
         return Plugin_Continue;
     }
@@ -181,7 +181,7 @@ public Action SMRCon_OnCommand(int rconId, const char[] address, const char[] co
     // Check against whitelist before continuing.
     int dummy;
     
-    if (!GetTrieSize(g_hWhitelist) || GetTrieValue(g_hWhitelist, address, dummy))
+    if (!g_hWhitelist.Size || g_hWhitelist.GetValue(address, dummy))
     {
         return Plugin_Continue;
     }

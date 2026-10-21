@@ -91,14 +91,14 @@ stock void ReplicateToAll(Handle convar, const char[] value)
     }
 }
 
-stock void SetTimer(Handle &hTimer, Handle hNewTimer = INVALID_HANDLE)
+stock void SetTimer(Handle &hTimer, Handle hNewTimer = null)
 {
     Handle hTemp = hTimer;
     hTimer = hNewTimer;
 
-    if (hTemp != INVALID_HANDLE)
+    if (hTemp != null)
     {
-        CloseHandle(hTemp);
+        delete hTemp;
     }
 }
 

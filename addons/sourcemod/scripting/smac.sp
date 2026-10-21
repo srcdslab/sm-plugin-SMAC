@@ -285,7 +285,7 @@ void SMAC_RelayToIRC(const char[] format, any ...)
 
 /* API - Natives & Forwards */
 
-Handle g_OnCheatDetected = INVALID_HANDLE;
+GlobalForward g_OnCheatDetected = null;
 
 void API_Init()
 {
@@ -297,7 +297,7 @@ void API_Init()
     CreateNative("SMAC_CreateConVar",       Native_CreateConVar);
     CreateNative("SMAC_CheatDetected",      Native_CheatDetected);
 
-    g_OnCheatDetected = CreateGlobalForward("SMAC_OnCheatDetected", ET_Event, Param_Cell, Param_String, Param_Cell, Param_Cell);
+    g_OnCheatDetected = new GlobalForward("SMAC_OnCheatDetected", ET_Event, Param_Cell, Param_String, Param_Cell, Param_Cell);
 }
 
 // native GameType:SMAC_GetGameType();
@@ -315,7 +315,7 @@ public int Native_Log(Handle plugin, int numParams)
     LogToFileEx(g_sLogPath, "[%s] %s", sFilename, sBuffer);
 
     // Relay log to IRC.
-    if (GetConVarInt(g_hCvarIrcMode) == 2)
+    if (g_hCvarIrcMode.IntValue == 2)
     {
         SMAC_RelayToIRC("[%s] %s", sFilename, sBuffer);
     }
@@ -357,7 +357,7 @@ public int Native_LogAction(Handle plugin, int numParams)
     FormatNativeString(0, 2, 3, sizeof(sBuffer), _, sBuffer);
 
     // Verbose client logging.
-    if (GetConVarBool(g_hCvarLogVerbose) && IsClientInGame(client))
+    if (g_hCvarLogVerbose.BoolValue && IsClientInGame(client))
     {
         char sMap[MAX_MAPNAME_LENGTH], sWeapon[32];
         float vOrigin[3], vAngles[3];
@@ -391,7 +391,7 @@ public int Native_LogAction(Handle plugin, int numParams)
     }
 
     // Relay minimal log to IRC.
-    if (GetConVarInt(g_hCvarIrcMode) == 2)
+    if (g_hCvarIrcMode.IntValue == 2)
     {
         SMAC_RelayToIRC("[%s | %s] %N (ID: %s | IP: %s) %s", sFilename, sVersion, client, sAuthID, sIP, sBuffer);
     }
@@ -479,7 +479,7 @@ public any Native_CreateConVar(Handle plugin, int numParams)
     return CreateConVar(name, defaultValue, description, flags, hasMin, min, hasMax, max);
 }
 
-// native Action:SMAC_CheatDetected(client, DetectionType:type = Detection_Unknown, Handle:info = INVALID_HANDLE);
+// native Action:SMAC_CheatDetected(client, DetectionType:type = Detection_Unknown, KeyValues:info = null);
 public int Native_CheatDetected(Handle plugin, int numParams)
 {
     int client = GetNativeCell(1);
@@ -499,16 +499,16 @@ public int Native_CheatDetected(Handle plugin, int numParams)
     GetPluginBasename(plugin, sFilename, sizeof(sFilename));
 
     DetectionType type = Detection_Unknown;
-    Handle info = INVALID_HANDLE;
+    KeyValues info = null;
 
     if (numParams == 3)
     {
         // caller is using newer cheat detected native
         type = view_as<DetectionType>(GetNativeCell(2));
-        info = view_as<Handle>(GetNativeCell(3));
+        info = view_as<KeyValues>(GetNativeCell(3));
     }
 
-    // forward Action:SMAC_OnCheatDetected(client, const String:module[], DetectionType:type, Handle:info);
+    // forward Action:SMAC_OnCheatDetected(client, const String:module[], DetectionType:type, KeyValues:info);
     Action result = Plugin_Continue;
     Call_StartForward(g_OnCheatDetected);
     Call_PushCell(client);

@@ -25,7 +25,7 @@
 #include <smac_stocks>
 
 /* Globals */
-#define SMAC_VERSION    "0.8.9"
+#define SMAC_VERSION    "0.8.10"
 #define SMAC_URL        "https://github.com/Silenci0/SMAC"
 #define SMAC_AUTHOR     "SMAC Development Team"
 #define SMAC_MOD_ERROR  "This module will not work for this mod and should be removed."
@@ -97,7 +97,7 @@ native void SMAC_LogAction(int client, const char[] format, any ...);
 native void SMAC_Ban(int client, const char[] reason, any ...);
 native void SMAC_PrintAdminNotice(const char[] format, any ...);
 native ConVar SMAC_CreateConVar(const char[] name, const char[] defaultValue, const char[] description="",int flags = 0, bool hasMin = false, float min = 0.0, bool hasMax = false, float max = 0.0);
-native Action SMAC_CheatDetected(int client, DetectionType type = Detection_Unknown, Handle info = INVALID_HANDLE);
+native Action SMAC_CheatDetected(int client, DetectionType type = Detection_Unknown, Handle info = null);
 
 /* Forwards */
 forward Action SMAC_OnCheatDetected(int client, const char[] module, DetectionType type, Handle info);

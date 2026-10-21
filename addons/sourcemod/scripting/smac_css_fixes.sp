@@ -54,11 +54,11 @@ public void OnPluginStart()
 
     hCvar = SMAC_CreateConVar("smac_css_defusefix", "1", "Block illegal defuses.", 0, true, 0.0, true, 1.0);
     OnDefuseFixChanged(hCvar, "", "");
-    HookConVarChange(hCvar, OnDefuseFixChanged);
+    hCvar.AddChangeHook(OnDefuseFixChanged);
 
     hCvar = SMAC_CreateConVar("smac_css_respawnfix", "1", "Block players from respawning through rejoins.", 0, true, 0.0, true, 1.0);
     OnRespawnFixChanged(hCvar, "", "");
-    HookConVarChange(hCvar, OnRespawnFixChanged);
+    hCvar.AddChangeHook(OnRespawnFixChanged);
 }
 
 public void OnMapStart()
@@ -170,7 +170,7 @@ void BombPlanted()
 
 public Action Event_BombBeginDefuse(Event event, const char[] name, bool dontBroadcast)
 {
-    g_iDefuserEnt = GetClientOfUserId(GetEventInt(event, "userid"));
+    g_iDefuserEnt = GetClientOfUserId(event.GetInt("userid"));
     return Plugin_Continue;
 }
 
@@ -185,22 +185,22 @@ public Action Event_ResetDefuser(Event event, const char[] name, bool dontBroadc
  */
 bool g_bRespawnFixEnabled;
 
-Handle g_hFreezeTime = INVALID_HANDLE;
-Handle g_hRespawnElapsed = INVALID_HANDLE;
-Handle g_hClientSpawned = INVALID_HANDLE;
+ConVar g_hFreezeTime = null;
+Handle g_hRespawnElapsed = null;
+StringMap g_hClientSpawned = null;
 int g_iClientClass[MAXPLAYERS+1] = {-1, ...};
 
 public void OnRespawnFixChanged(ConVar convar, char[] oldValue, char[] newValue)
 {
-    if (g_hClientSpawned == INVALID_HANDLE)
+    if (g_hClientSpawned == null)
     {
-        g_hClientSpawned = CreateTrie();
+        g_hClientSpawned = new StringMap();
     }
 
     bool bNewValue = convar.BoolValue;
     if (bNewValue && !g_bRespawnFixEnabled)
     {
-        if (g_hFreezeTime == INVALID_HANDLE)
+        if (g_hFreezeTime == null)
         {
             g_hFreezeTime = FindConVar("mp_freezetime");
         }
@@ -241,7 +241,7 @@ public Action Command_JoinClass(int client, const char[] command, int argc)
     {
         char sAuthID[MAX_AUTHID_LENGTH], dummy;
 
-        if (GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID), false) && GetTrieValue(g_hClientSpawned, sAuthID, dummy))
+        if (GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID), false) && g_hClientSpawned.GetValue(sAuthID, dummy))
         {
             char sBuffer[64];
             GetCmdArgString(sBuffer, sizeof(sBuffer));
@@ -261,7 +261,7 @@ public Action Command_JoinClass(int client, const char[] command, int argc)
 
 public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-    int userid = GetEventInt(event, "userid");
+    int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
 
     if (IS_CLIENT(client))
@@ -284,7 +284,7 @@ public Action Timer_PlayerSpawned(Handle timer, any userid)
         char sAuthID[MAX_AUTHID_LENGTH];
         if (GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID), false))
         {
-            SetTrieValue(g_hClientSpawned, sAuthID, true);
+            g_hClientSpawned.SetValue(sAuthID, true);
         }
     }
 
@@ -294,20 +294,20 @@ public Action Timer_PlayerSpawned(Handle timer, any userid)
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
     ClearSpawnData();
-    g_hRespawnElapsed = CreateTimer(GetConVarFloat(g_hFreezeTime) + 21.0, Timer_RespawnElapsed);
+    g_hRespawnElapsed = CreateTimer(g_hFreezeTime.FloatValue + 21.0, Timer_RespawnElapsed);
     return Plugin_Continue;
 }
 
 public Action Timer_RespawnElapsed(Handle timer)
 {
-    g_hRespawnElapsed = INVALID_HANDLE;
+    g_hRespawnElapsed = null;
     ClearSpawnData();
     return Plugin_Stop;
 }
 
 void ClearSpawnData()
 {
-    ClearTrie(g_hClientSpawned);
+    g_hClientSpawned.Clear();
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -322,11 +322,11 @@ void ClearSpawnData()
         }
     }
 
-    if (g_hRespawnElapsed != INVALID_HANDLE)
+    if (g_hRespawnElapsed != null)
     {
         Handle hTemp = g_hRespawnElapsed;
-        g_hRespawnElapsed = INVALID_HANDLE;
+        g_hRespawnElapsed = null;
 
-        CloseHandle(hTemp);
+        delete hTemp;
     }
 }

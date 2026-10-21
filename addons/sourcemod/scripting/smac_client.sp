@@ -40,7 +40,7 @@ public Plugin myinfo =
 /* Globals */
 ConVar g_hCvarConnectSpam = null;
 ConVar g_hCvarValidateAuth = null;
-Handle g_hClientConnections = INVALID_HANDLE;
+StringMap g_hClientConnections = null;
 float g_fTeamJoinTime[MAXPLAYERS+1][6];
 int g_iNameChanges[MAXPLAYERS+1];
 int g_iAchievements[MAXPLAYERS+1];
@@ -61,7 +61,7 @@ public void OnPluginStart()
     // Convars.
     g_hCvarConnectSpam = SMAC_CreateConVar("smac_antispam_connect", "2", "Block reconnection attempts for X seconds. (0 = Disabled)", 0, true, 0.0);
     g_hCvarValidateAuth = SMAC_CreateConVar("smac_validate_auth", "0", "Kick clients that fail to authenticate within 10 seconds of joining the server.", 0, true, 0.0, true, 1.0);
-    g_hClientConnections = CreateTrie();
+    g_hClientConnections = new StringMap();
 
     // Hooks.
     if (SMAC_GetGameType() == Game_CSS || SMAC_GetGameType() == Game_TF2)
@@ -104,7 +104,7 @@ public Action Timer_MapStarted(Handle timer)
 public void OnMapEnd()
 {
     g_bMapStarted = false;
-    ClearTrie(g_hClientConnections);
+    g_hClientConnections.Clear();
 }
 
 #if defined _connect_included
@@ -192,7 +192,7 @@ public void OnClientPutInServer(int client)
     }
 
     // Give the client 10s to fully authenticate.
-    if (!IsFakeClient(client) && !IsClientAuthorized(client) && GetConVarBool(g_hCvarValidateAuth))
+    if (!IsFakeClient(client) && !IsClientAuthorized(client) && g_hCvarValidateAuth.BoolValue)
     {
         CreateTimer(10.0, Timer_ValidateAuth, GetClientSerial(client), TIMER_FLAG_NO_MAPCHANGE);
     }
@@ -235,7 +235,7 @@ public Action Hook_TextMsg(UserMsg msg_id, BfRead msg, const int[] players, int 
     }
 
     // The message we are looking for is sent to chat.
-    int destination = BfReadByte(msg);
+    int destination = msg.ReadByte();
 
     if (destination != 3)
     {
@@ -243,13 +243,13 @@ public Action Hook_TextMsg(UserMsg msg_id, BfRead msg, const int[] players, int 
     }
 
     char sBuffer[64];
-    BfReadString(msg, sBuffer, sizeof(sBuffer));
+    msg.ReadString(sBuffer, sizeof(sBuffer));
 
     if (StrEqual(sBuffer, "#Name_change_limit_exceeded"))
     {
         int client = players[0];
 
-        if (!IsFakeClient(client) && SMAC_CheatDetected(client, Detection_NameChangeSpam, INVALID_HANDLE) == Plugin_Continue)
+        if (!IsFakeClient(client) && SMAC_CheatDetected(client, Detection_NameChangeSpam, null) == Plugin_Continue)
         {
             SMAC_LogAction(client, "was kicked for name change spam.");
             KickClient(client, "%t", "SMAC_CommandSpamKick");
@@ -267,12 +267,12 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
     }
 
     // Don't broadcast team changes if they're being spammed.
-    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    int client = GetClientOfUserId(event.GetInt("userid"));
     
     if (IS_CLIENT(client))
     {
         float fGameTime = GetGameTime();
-        int team = GetEventInt(event, "team");
+        int team = event.GetInt("team");
 
         if (team < 0 || team >= sizeof(g_fTeamJoinTime[]))
         {
@@ -281,7 +281,7 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
 
         if (g_fTeamJoinTime[client][team] > fGameTime)
         {
-            SetEventBroadcast(event, true);
+            event.BroadcastDisabled = true;
         }
 
         g_fTeamJoinTime[client][team] = fGameTime + 30.0;
@@ -292,11 +292,11 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
 
 public Action Event_PlayerChangeName(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    int client = GetClientOfUserId(event.GetInt("userid"));
 
     if (IS_CLIENT(client) && IsClientInGame(client) && !IsFakeClient(client) && ++g_iNameChanges[client] >= 5)
     {
-        if (SMAC_CheatDetected(client, Detection_NameChangeSpam, INVALID_HANDLE) == Plugin_Continue)
+        if (SMAC_CheatDetected(client, Detection_NameChangeSpam, null) == Plugin_Continue)
         {
             SMAC_LogAction(client, "was kicked for name change spam.");
             KickClient(client, "%t", "SMAC_CommandSpamKick");
@@ -309,7 +309,7 @@ public Action Event_PlayerChangeName(Event event, const char[] name, bool dontBr
 
 public Action Event_AchievementEarned(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetEventInt(event, "player");
+    int client = event.GetInt("player");
 
     if (IS_CLIENT(client) && ++g_iAchievements[client] >= 5)
     {
@@ -493,14 +493,14 @@ bool IsConnectSpamming(const char[] ip)
         return false;
     }
 
-    static Handle hIgnoreList = INVALID_HANDLE;
+    static StringMap hIgnoreList = null;
 
-    if (hIgnoreList == INVALID_HANDLE)
+    if (hIgnoreList == null)
     {
-        hIgnoreList = CreateTrie();
+        hIgnoreList = new StringMap();
     }
 
-    float fSpamTime = GetConVarFloat(g_hCvarConnectSpam);
+    float fSpamTime = g_hCvarConnectSpam.FloatValue;
 
     if (fSpamTime > 0.0)
     {
@@ -511,18 +511,18 @@ bool IsConnectSpamming(const char[] ip)
         {
             if (IsClientAuthorized(i) && GetClientIP(i, sTempIP, sizeof(sTempIP)) && StrEqual(ip, sTempIP))
             {
-                SetTrieValue(hIgnoreList, ip, 1);
+                hIgnoreList.SetValue(ip, 1);
                 break;
             }
         }
 
-        if (!GetTrieValue(hIgnoreList, ip, dummy))
+        if (!hIgnoreList.GetValue(ip, dummy))
         {
-            if (GetTrieValue(g_hClientConnections, ip, dummy))
+            if (g_hClientConnections.GetValue(ip, dummy))
             {
                 return true;
             }
-            else if (SetTrieValue(g_hClientConnections, ip, 1))
+            else if (g_hClientConnections.SetValue(ip, 1))
             {
                 CreateTimer(fSpamTime, Timer_AntiSpamConnect, IPToLong(ip));
             }
@@ -535,21 +535,21 @@ bool IsConnectSpamming(const char[] ip)
 bool ShouldLogIP(const char[] ip)
 {
     /* Only log each IP once to prevent log spam. */
-    static Handle hLogList = INVALID_HANDLE;
+    static StringMap hLogList = null;
 
-    if (hLogList == INVALID_HANDLE)
+    if (hLogList == null)
     {
-        hLogList = CreateTrie();
+        hLogList = new StringMap();
     }
 
     int dummy;
 
-    if (GetTrieValue(hLogList, ip, dummy))
+    if (hLogList.GetValue(ip, dummy))
     {
         return false;
     }
 
-    SetTrieValue(hLogList, ip, 1);
+    hLogList.SetValue(ip, 1);
     return true;
 }
 
@@ -557,7 +557,7 @@ public Action Timer_AntiSpamConnect(Handle timer, any ip)
 {
     char sIP[17];
     LongToIP(ip, sIP, sizeof(sIP));
-    RemoveFromTrie(g_hClientConnections, sIP);
+    g_hClientConnections.Remove(sIP);
 
     return Plugin_Stop;
 }

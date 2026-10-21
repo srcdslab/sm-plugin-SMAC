@@ -111,7 +111,7 @@ public Action Hook_FireBullets(const char[] te_name, const int[] Players, int nu
 public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 {
     // Slay players that execute a team change while using an active gravity gun.
-    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    int client = GetClientOfUserId(event.GetInt("userid"));
 
     if (IS_CLIENT(client) && IsClientInGame(client) && IsPlayerAlive(client))
     {
@@ -122,7 +122,7 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
             GetEdictClassname(weapon, sWeapon, sizeof(sWeapon)) && 
             StrEqual(sWeapon, "weapon_physcannon") && 
             GetEntProp(weapon, Prop_Send, "m_bActive", 1) && 
-            SMAC_CheatDetected(client, Detection_GravityGunExploit, INVALID_HANDLE) == Plugin_Continue)
+            SMAC_CheatDetected(client, Detection_GravityGunExploit, null) == Plugin_Continue)
         {
             SMAC_LogAction(client, "was slayed for attempting to exploit the gravity gun.");
             ForcePlayerSuicide(client);

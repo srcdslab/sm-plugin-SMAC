@@ -42,8 +42,8 @@ enum ActionType {
     Action_Kick
 };
 
-Handle g_hBlockedCmds = INVALID_HANDLE;
-Handle g_hIgnoredCmds = INVALID_HANDLE;
+StringMap g_hBlockedCmds = null;
+StringMap g_hIgnoredCmds = null;
 int g_iCmdSpamLimit = 30;
 int g_iCmdCount[MAXPLAYERS+1] = {0, ...};
 ConVar g_hCvarCmdSpam = null;
@@ -58,7 +58,7 @@ public void OnPluginStart()
     g_hCvarCmdSpam = SMAC_CreateConVar("smac_antispam_cmds", "20", "Amount of commands allowed per second. (0 = Disabled)", 0, true, 0.0);
     g_hCvarCmdSpmKick = SMAC_CreateConVar("smac_anticmdspam_kick", "1", "Choose to kick or simply notify that commands are being spammed. (0 = Notify  1 = Kick)", 0, true, 0.0, true, 1.0);
     OnSettingsChanged(g_hCvarCmdSpam, "", "");
-    HookConVarChange(g_hCvarCmdSpam, OnSettingsChanged);
+    g_hCvarCmdSpam.AddChangeHook(OnSettingsChanged);
 
     // Hooks.
     AddCommandListener(Command_Say, "say");
@@ -87,100 +87,100 @@ public void OnPluginStart()
     }
 
     // Init...
-    g_hBlockedCmds = CreateTrie();
-    g_hIgnoredCmds = CreateTrie();
+    g_hBlockedCmds = new StringMap();
+    g_hIgnoredCmds = new StringMap();
 
     // Add commands to block list.
-    SetTrieValue(g_hBlockedCmds, "ai_test_los",                     Action_Block);
-    SetTrieValue(g_hBlockedCmds, "cl_fullupdate",                   Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dbghist_addline",                 Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dbghist_dump",                    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "drawcross",                       Action_Block);
-    SetTrieValue(g_hBlockedCmds, "drawline",                        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dump_entity_sizes",               Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dump_globals",                    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dump_panels",                     Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dump_terrain",                    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dumpcountedstrings",              Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dumpentityfactories",             Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dumpeventqueue",                  Action_Block);
-    SetTrieValue(g_hBlockedCmds, "dumpgamestringtable",             Action_Block);
-    SetTrieValue(g_hBlockedCmds, "editdemo",                        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "endround",                        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "groundlist",                      Action_Block);
-    SetTrieValue(g_hBlockedCmds, "listdeaths",                      Action_Block);
-    SetTrieValue(g_hBlockedCmds, "listmodels",                      Action_Block);
-    SetTrieValue(g_hBlockedCmds, "map_showspawnpoints",             Action_Block);
-    SetTrieValue(g_hBlockedCmds, "mem_dump",                        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "mp_dump_timers",                  Action_Block);
-    SetTrieValue(g_hBlockedCmds, "npc_ammo_deplete",                Action_Block);
-    SetTrieValue(g_hBlockedCmds, "npc_heal",                        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "npc_speakall",                    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "npc_thinknow",                    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "physics_budget",                  Action_Block);
-    SetTrieValue(g_hBlockedCmds, "physics_debug_entity",            Action_Block);
-    SetTrieValue(g_hBlockedCmds, "physics_highlight_active",        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "physics_report_active",           Action_Block);
-    SetTrieValue(g_hBlockedCmds, "physics_select",                  Action_Block);
-    SetTrieValue(g_hBlockedCmds, "report_entities",                 Action_Block);
-    SetTrieValue(g_hBlockedCmds, "report_simthinklist",             Action_Block);
-    SetTrieValue(g_hBlockedCmds, "report_touchlinks",               Action_Block);
-    SetTrieValue(g_hBlockedCmds, "respawn_entities",                Action_Block);
-    SetTrieValue(g_hBlockedCmds, "rr_reloadresponsesystems",        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "scene_flush",                     Action_Block);
-    SetTrieValue(g_hBlockedCmds, "snd_digital_surround",            Action_Block);
-    SetTrieValue(g_hBlockedCmds, "snd_restart",                     Action_Block);
-    SetTrieValue(g_hBlockedCmds, "soundlist",                       Action_Block);
-    SetTrieValue(g_hBlockedCmds, "soundscape_flush",                Action_Block);
-    SetTrieValue(g_hBlockedCmds, "sv_benchmark_force_start",        Action_Block);
-    SetTrieValue(g_hBlockedCmds, "sv_findsoundname",                Action_Block);
-    SetTrieValue(g_hBlockedCmds, "sv_soundemitter_filecheck",       Action_Block);
-    SetTrieValue(g_hBlockedCmds, "sv_soundemitter_flush",           Action_Block);
-    SetTrieValue(g_hBlockedCmds, "sv_soundscape_printdebuginfo",    Action_Block);
-    SetTrieValue(g_hBlockedCmds, "wc_update_entity",                Action_Block);
-    SetTrieValue(g_hBlockedCmds, "ping",                            Action_Block);
+    g_hBlockedCmds.SetValue("ai_test_los", Action_Block);
+    g_hBlockedCmds.SetValue("cl_fullupdate", Action_Block);
+    g_hBlockedCmds.SetValue("dbghist_addline", Action_Block);
+    g_hBlockedCmds.SetValue("dbghist_dump", Action_Block);
+    g_hBlockedCmds.SetValue("drawcross", Action_Block);
+    g_hBlockedCmds.SetValue("drawline", Action_Block);
+    g_hBlockedCmds.SetValue("dump_entity_sizes", Action_Block);
+    g_hBlockedCmds.SetValue("dump_globals", Action_Block);
+    g_hBlockedCmds.SetValue("dump_panels", Action_Block);
+    g_hBlockedCmds.SetValue("dump_terrain", Action_Block);
+    g_hBlockedCmds.SetValue("dumpcountedstrings", Action_Block);
+    g_hBlockedCmds.SetValue("dumpentityfactories", Action_Block);
+    g_hBlockedCmds.SetValue("dumpeventqueue", Action_Block);
+    g_hBlockedCmds.SetValue("dumpgamestringtable", Action_Block);
+    g_hBlockedCmds.SetValue("editdemo", Action_Block);
+    g_hBlockedCmds.SetValue("endround", Action_Block);
+    g_hBlockedCmds.SetValue("groundlist", Action_Block);
+    g_hBlockedCmds.SetValue("listdeaths", Action_Block);
+    g_hBlockedCmds.SetValue("listmodels", Action_Block);
+    g_hBlockedCmds.SetValue("map_showspawnpoints", Action_Block);
+    g_hBlockedCmds.SetValue("mem_dump", Action_Block);
+    g_hBlockedCmds.SetValue("mp_dump_timers", Action_Block);
+    g_hBlockedCmds.SetValue("npc_ammo_deplete", Action_Block);
+    g_hBlockedCmds.SetValue("npc_heal", Action_Block);
+    g_hBlockedCmds.SetValue("npc_speakall", Action_Block);
+    g_hBlockedCmds.SetValue("npc_thinknow", Action_Block);
+    g_hBlockedCmds.SetValue("physics_budget", Action_Block);
+    g_hBlockedCmds.SetValue("physics_debug_entity", Action_Block);
+    g_hBlockedCmds.SetValue("physics_highlight_active", Action_Block);
+    g_hBlockedCmds.SetValue("physics_report_active", Action_Block);
+    g_hBlockedCmds.SetValue("physics_select", Action_Block);
+    g_hBlockedCmds.SetValue("report_entities", Action_Block);
+    g_hBlockedCmds.SetValue("report_simthinklist", Action_Block);
+    g_hBlockedCmds.SetValue("report_touchlinks", Action_Block);
+    g_hBlockedCmds.SetValue("respawn_entities", Action_Block);
+    g_hBlockedCmds.SetValue("rr_reloadresponsesystems", Action_Block);
+    g_hBlockedCmds.SetValue("scene_flush", Action_Block);
+    g_hBlockedCmds.SetValue("snd_digital_surround", Action_Block);
+    g_hBlockedCmds.SetValue("snd_restart", Action_Block);
+    g_hBlockedCmds.SetValue("soundlist", Action_Block);
+    g_hBlockedCmds.SetValue("soundscape_flush", Action_Block);
+    g_hBlockedCmds.SetValue("sv_benchmark_force_start", Action_Block);
+    g_hBlockedCmds.SetValue("sv_findsoundname", Action_Block);
+    g_hBlockedCmds.SetValue("sv_soundemitter_filecheck", Action_Block);
+    g_hBlockedCmds.SetValue("sv_soundemitter_flush", Action_Block);
+    g_hBlockedCmds.SetValue("sv_soundscape_printdebuginfo", Action_Block);
+    g_hBlockedCmds.SetValue("wc_update_entity", Action_Block);
+    g_hBlockedCmds.SetValue("ping", Action_Block);
     
-    SetTrieValue(g_hBlockedCmds, "changelevel",                     Action_Ban);
+    g_hBlockedCmds.SetValue("changelevel", Action_Ban);
     
-    SetTrieValue(g_hBlockedCmds, "speed.toggle",                    Action_Kick);
+    g_hBlockedCmds.SetValue("speed.toggle", Action_Kick);
     
     // Add game specific commands to block list.
     switch (SMAC_GetGameType())
     {
         case Game_L4D:
         {
-            SetTrieValue(g_hBlockedCmds, "demo_returntolobby", Action_Block);
-            SetTrieValue(g_hIgnoredCmds, "choose_closedoor", true);
-            SetTrieValue(g_hIgnoredCmds, "choose_opendoor", true);
+            g_hBlockedCmds.SetValue("demo_returntolobby", Action_Block);
+            g_hIgnoredCmds.SetValue("choose_closedoor", true);
+            g_hIgnoredCmds.SetValue("choose_opendoor", true);
         }
         case Game_L4D2:
         {
-            SetTrieValue(g_hIgnoredCmds, "choose_closedoor", true);
-            SetTrieValue(g_hIgnoredCmds, "choose_opendoor", true);
+            g_hIgnoredCmds.SetValue("choose_closedoor", true);
+            g_hIgnoredCmds.SetValue("choose_opendoor", true);
         }
         case Game_ND:
         {
-            SetTrieValue(g_hIgnoredCmds, "bitcmd", true);
-            SetTrieValue(g_hIgnoredCmds, "sg", true);
+            g_hIgnoredCmds.SetValue("bitcmd", true);
+            g_hIgnoredCmds.SetValue("sg", true);
         }
         case Game_CSGO:
         {
-            SetTrieValue(g_hIgnoredCmds, "snd_setsoundparam", true);
+            g_hIgnoredCmds.SetValue("snd_setsoundparam", true);
         }
     }
 
     // Add commands to ignore list.
-    SetTrieValue(g_hIgnoredCmds, "buy", true);
-    SetTrieValue(g_hIgnoredCmds, "buyammo1", true);
-    SetTrieValue(g_hIgnoredCmds, "buyammo2", true);
-    SetTrieValue(g_hIgnoredCmds, "setpause", true);
-    SetTrieValue(g_hIgnoredCmds, "spec_mode", true);
-    SetTrieValue(g_hIgnoredCmds, "spec_next", true);
-    SetTrieValue(g_hIgnoredCmds, "spec_prev", true);
-    SetTrieValue(g_hIgnoredCmds, "unpause", true);
-    SetTrieValue(g_hIgnoredCmds, "use", true);
-    SetTrieValue(g_hIgnoredCmds, "vban", true);
-    SetTrieValue(g_hIgnoredCmds, "vmodenable", true);
+    g_hIgnoredCmds.SetValue("buy", true);
+    g_hIgnoredCmds.SetValue("buyammo1", true);
+    g_hIgnoredCmds.SetValue("buyammo2", true);
+    g_hIgnoredCmds.SetValue("setpause", true);
+    g_hIgnoredCmds.SetValue("spec_mode", true);
+    g_hIgnoredCmds.SetValue("spec_next", true);
+    g_hIgnoredCmds.SetValue("spec_prev", true);
+    g_hIgnoredCmds.SetValue("unpause", true);
+    g_hIgnoredCmds.SetValue("use", true);
+    g_hIgnoredCmds.SetValue("vban", true);
+    g_hIgnoredCmds.SetValue("vmodenable", true);
 
     CreateTimer(1.0, Timer_ResetCmdCount, _, TIMER_REPEAT);
 
@@ -217,7 +217,7 @@ public Action Command_AddCmd(int client,int args)
             }
         }
         
-        SetTrieValue(g_hBlockedCmds, sCommand, cAction);
+        g_hBlockedCmds.SetValue(sCommand, cAction);
         ReplyToCommand(client, "%s has been added.", sCommand);
         
         return Plugin_Handled;
@@ -236,7 +236,7 @@ public Action Command_AddIgnoreCmd(int client,int args)
         GetCmdArg(1, sCommand, sizeof(sCommand));
         StringToLower(sCommand);
         
-        SetTrieValue(g_hIgnoredCmds, sCommand, true);
+        g_hIgnoredCmds.SetValue(sCommand, true);
         ReplyToCommand(client, "%s has been added.", sCommand);
         
         return Plugin_Handled;
@@ -255,7 +255,7 @@ public Action Command_RemoveCmd(int client,int args)
         GetCmdArg(1, sCommand, sizeof(sCommand));
         StringToLower(sCommand);
 
-        if (RemoveFromTrie(g_hBlockedCmds, sCommand))
+        if (g_hBlockedCmds.Remove(sCommand))
         {
             ReplyToCommand(client, "%s has been removed.", sCommand);
         }
@@ -280,7 +280,7 @@ public Action Command_RemoveIgnoreCmd(int client,int args)
         GetCmdArg(1, sCommand, sizeof(sCommand));
         StringToLower(sCommand);
         
-        if (RemoveFromTrie(g_hIgnoredCmds, sCommand))
+        if (g_hIgnoredCmds.Remove(sCommand))
         {
             ReplyToCommand(client, "%s has been removed.", sCommand);
         }
@@ -395,17 +395,17 @@ public Action Command_CommandListener(int client, const char[] command,int argc)
     // NOTE: InternalDispatch automatically lower cases "command".
     ActionType cAction = Action_Block;
     
-    if (GetTrieValue(g_hBlockedCmds, command, cAction))
+    if (g_hBlockedCmds.GetValue(command, cAction))
     {
         if (cAction != Action_Block)
         {
             char sArgString[192];
             GetCmdArgString(sArgString, sizeof(sArgString));
             
-            Handle info = CreateKeyValues("");
-            KvSetString(info, "command", command);
-            KvSetString(info, "argstring", sArgString);
-            KvSetNum(info, "action", view_as<int>(cAction));
+            KeyValues info = new KeyValues("");
+            info.SetString("command", command);
+            info.SetString("argstring", sArgString);
+            info.SetNum("action", view_as<int>(cAction));
             
             if (SMAC_CheatDetected(client, Detection_BannedCommand, info) == Plugin_Continue)
             {
@@ -427,30 +427,30 @@ public Action Command_CommandListener(int client, const char[] command,int argc)
                 }
             }
             
-            CloseHandle(info);
+            delete info;
         }
         
         return Plugin_Stop;
     }
     
-    if (g_iCmdSpamLimit && !GetTrieValue(g_hIgnoredCmds, command, cAction) && ++g_iCmdCount[client] > g_iCmdSpamLimit)
+    if (g_iCmdSpamLimit && !g_hIgnoredCmds.GetValue(command, cAction) && ++g_iCmdCount[client] > g_iCmdSpamLimit)
     {
         char sArgString[192];
         GetCmdArgString(sArgString, sizeof(sArgString));
         
-        Handle info = CreateKeyValues("");
-        KvSetString(info, "command", command);
-        KvSetString(info, "argstring", sArgString);
+        KeyValues info = new KeyValues("");
+        info.SetString("command", command);
+        info.SetString("argstring", sArgString);
         
         if (SMAC_CheatDetected(client, Detection_CommandSpamming, info) == Plugin_Continue)
         {
-            if (GetConVarInt(g_hCvarCmdSpmKick) == 1)
+            if (g_hCvarCmdSpmKick.IntValue == 1)
             {
                 SMAC_PrintAdminNotice("%N was kicked for spamming: %s %s", client, command, sArgString);
                 SMAC_LogAction(client, "was kicked for spamming: %s %s", command, sArgString);
                 KickClient(client, "%t", "SMAC_CommandSpamKick");
             }
-            else if (GetConVarInt(g_hCvarCmdSpmKick) == 0)
+            else if (g_hCvarCmdSpmKick.IntValue == 0)
             {
                 SMAC_PrintAdminNotice("%N looks to be spamming commands: %s %s", client, command, sArgString);
                 SMAC_LogAction(client, "looks to be spamming commands: %s %s", command, sArgString);
@@ -461,7 +461,7 @@ public Action Command_CommandListener(int client, const char[] command,int argc)
             }
         }
 
-        CloseHandle(info);
+        delete info;
 
         return Plugin_Stop;
     }

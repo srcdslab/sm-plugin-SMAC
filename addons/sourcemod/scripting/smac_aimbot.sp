@@ -40,7 +40,7 @@ public Plugin myinfo =
 #define AIM_MIN_DISTANCE	200.0	// Minimum distance acceptable for a detection.
 
 ConVar g_hCvarAimbotBan = null;
-Handle g_IgnoreWeapons = INVALID_HANDLE;
+StringMap g_IgnoreWeapons = null;
 
 float g_fEyeAngles[MAXPLAYERS+1][64][3];
 int g_iEyeIndex[MAXPLAYERS+1];
@@ -66,90 +66,90 @@ public void OnPluginStart()
     }
 
     // Weapons to ignore when analyzing.
-    g_IgnoreWeapons = CreateTrie();
+    g_IgnoreWeapons = new StringMap();
 
     switch (SMAC_GetGameType())
     {
         case Game_CSS:
         {
-            SetTrieValue(g_IgnoreWeapons, "weapon_knife", 1);
+            g_IgnoreWeapons.SetValue("weapon_knife", 1);
         }
         case Game_CSGO:
         {
-            SetTrieValue(g_IgnoreWeapons, "weapon_knife", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_taser", 1);
+            g_IgnoreWeapons.SetValue("weapon_knife", 1);
+            g_IgnoreWeapons.SetValue("weapon_taser", 1);
         }
         case Game_DODS:
         {
-            SetTrieValue(g_IgnoreWeapons, "weapon_spade", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_amerknife", 1);
+            g_IgnoreWeapons.SetValue("weapon_spade", 1);
+            g_IgnoreWeapons.SetValue("weapon_amerknife", 1);
         }
         case Game_TF2:
         {
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_bottle", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_sword", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_wrench", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_robot_arm", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_fists", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_bonesaw", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_fireaxe", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_bat", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_bat_wood", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_bat_fish", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_club", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_shovel", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_knife", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_stickbomb", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_katana", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_flamethrower", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_slap", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_buff_item", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_parachute", 1); 
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_breakable_sign", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_wearable_demoshield", 1); 
-            SetTrieValue(g_IgnoreWeapons, "tf_wearable_razorback", 1); 
-            SetTrieValue(g_IgnoreWeapons, "tf_wearable", 1); 
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_rocketpack", 1); 
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_lunchbox_drink", 1);
-            SetTrieValue(g_IgnoreWeapons, "tf_weapon_lunchbox", 1); 
-            SetTrieValue(g_IgnoreWeapons, "saxxy", 1); 
+            g_IgnoreWeapons.SetValue("tf_weapon_bottle", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_sword", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_wrench", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_robot_arm", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_fists", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_bonesaw", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_fireaxe", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_bat", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_bat_wood", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_bat_fish", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_club", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_shovel", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_knife", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_stickbomb", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_katana", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_flamethrower", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_slap", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_buff_item", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_parachute", 1); 
+            g_IgnoreWeapons.SetValue("tf_weapon_breakable_sign", 1);
+            g_IgnoreWeapons.SetValue("tf_wearable_demoshield", 1); 
+            g_IgnoreWeapons.SetValue("tf_wearable_razorback", 1); 
+            g_IgnoreWeapons.SetValue("tf_wearable", 1); 
+            g_IgnoreWeapons.SetValue("tf_weapon_rocketpack", 1); 
+            g_IgnoreWeapons.SetValue("tf_weapon_lunchbox_drink", 1);
+            g_IgnoreWeapons.SetValue("tf_weapon_lunchbox", 1); 
+            g_IgnoreWeapons.SetValue("saxxy", 1); 
         }
         case Game_HL2DM:
         {
-            SetTrieValue(g_IgnoreWeapons, "weapon_crowbar", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_stunstick", 1);
+            g_IgnoreWeapons.SetValue("weapon_crowbar", 1);
+            g_IgnoreWeapons.SetValue("weapon_stunstick", 1);
         }
         case Game_ZPS:
         {
-            SetTrieValue(g_IgnoreWeapons, "weapon_torque", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_tireiron", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_crowbar", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_spanner", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_sledgehammer", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_shovel", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_racket", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_pot", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_plank", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_pipewrench", 1);   
-            SetTrieValue(g_IgnoreWeapons, "weapon_pipe", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_phone", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_meatcleaver", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_machete", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_keyboard", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_ied", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_golf", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_fryingpan", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_emptyhand", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_carrierarms", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_broom", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_bat_wood", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_bat_aluminum", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_chair", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_baguette", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_barricade", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_axe", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_arms", 1);
-            SetTrieValue(g_IgnoreWeapons, "weapon_wrench", 1);
+            g_IgnoreWeapons.SetValue("weapon_torque", 1);
+            g_IgnoreWeapons.SetValue("weapon_tireiron", 1);
+            g_IgnoreWeapons.SetValue("weapon_crowbar", 1);
+            g_IgnoreWeapons.SetValue("weapon_spanner", 1);
+            g_IgnoreWeapons.SetValue("weapon_sledgehammer", 1);
+            g_IgnoreWeapons.SetValue("weapon_shovel", 1);
+            g_IgnoreWeapons.SetValue("weapon_racket", 1);
+            g_IgnoreWeapons.SetValue("weapon_pot", 1);
+            g_IgnoreWeapons.SetValue("weapon_plank", 1);
+            g_IgnoreWeapons.SetValue("weapon_pipewrench", 1);   
+            g_IgnoreWeapons.SetValue("weapon_pipe", 1);
+            g_IgnoreWeapons.SetValue("weapon_phone", 1);
+            g_IgnoreWeapons.SetValue("weapon_meatcleaver", 1);
+            g_IgnoreWeapons.SetValue("weapon_machete", 1);
+            g_IgnoreWeapons.SetValue("weapon_keyboard", 1);
+            g_IgnoreWeapons.SetValue("weapon_ied", 1);
+            g_IgnoreWeapons.SetValue("weapon_golf", 1);
+            g_IgnoreWeapons.SetValue("weapon_fryingpan", 1);
+            g_IgnoreWeapons.SetValue("weapon_emptyhand", 1);
+            g_IgnoreWeapons.SetValue("weapon_carrierarms", 1);
+            g_IgnoreWeapons.SetValue("weapon_broom", 1);
+            g_IgnoreWeapons.SetValue("weapon_bat_wood", 1);
+            g_IgnoreWeapons.SetValue("weapon_bat_aluminum", 1);
+            g_IgnoreWeapons.SetValue("weapon_chair", 1);
+            g_IgnoreWeapons.SetValue("weapon_baguette", 1);
+            g_IgnoreWeapons.SetValue("weapon_barricade", 1);
+            g_IgnoreWeapons.SetValue("weapon_axe", 1);
+            g_IgnoreWeapons.SetValue("weapon_arms", 1);
+            g_IgnoreWeapons.SetValue("weapon_wrench", 1);
         }
     }
 
@@ -218,7 +218,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
     //GetEventString(event, "weapon", sWeapon, sizeof(sWeapon));
     event.GetString("weapon", sWeapon, sizeof(sWeapon));
 
-    if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
+    if (g_IgnoreWeapons.GetValue(sWeapon, dummy))
     {
         return Plugin_Continue;
     }
@@ -252,7 +252,7 @@ public Action Event_EntityKilled(Event event, const char[] name, bool dontBroadc
         char sWeapon[32], dummy;
         GetClientWeapon(attacker, sWeapon, sizeof(sWeapon));
         
-        if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
+        if (g_IgnoreWeapons.GetValue(sWeapon, dummy))
         {
             return Plugin_Continue;
         }
@@ -272,16 +272,16 @@ public Action Event_EntityKilled(Event event, const char[] name, bool dontBroadc
 public Action TF2_Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
     /* TF2 custom death event */
-    int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-    int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-    int inflictor = GetEventInt(event, "inflictor_entindex");
+    int victim = GetClientOfUserId(event.GetInt("userid"));
+    int attacker = GetClientOfUserId(event.GetInt("attacker"));
+    int inflictor = event.GetInt("inflictor_entindex");
 
     if (IS_CLIENT(victim) && IS_CLIENT(attacker) && victim != attacker && attacker == inflictor && IsClientInGame(victim) && IsClientInGame(attacker))
     {
         char sWeapon[32], dummy;
         GetClientWeapon(attacker, sWeapon, sizeof(sWeapon));
 
-        if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
+        if (g_IgnoreWeapons.GetValue(sWeapon, dummy))
         {
             return Plugin_Continue;
         }
@@ -418,10 +418,10 @@ void Aimbot_Detected(int client, const float deviation)
     char sWeapon[32];
     GetClientWeapon(client, sWeapon, sizeof(sWeapon));
     
-    Handle info = CreateKeyValues("");
-    KvSetNum(info, "detection", g_iAimDetections[client]);
-    KvSetFloat(info, "deviation", deviation);
-    KvSetString(info, "weapon", sWeapon);
+    KeyValues info = new KeyValues("");
+    info.SetNum("detection", g_iAimDetections[client]);
+    info.SetFloat("deviation", deviation);
+    info.SetString("weapon", sWeapon);
     
     if (SMAC_CheatDetected(client, Detection_Aimbot, info) == Plugin_Continue)
     {
@@ -442,7 +442,7 @@ void Aimbot_Detected(int client, const float deviation)
         }
     }
     
-    CloseHandle(info);
+    delete info;
 }
 
 void Aimbot_ClearAngles(int client)
