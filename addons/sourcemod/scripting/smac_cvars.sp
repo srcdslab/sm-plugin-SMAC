@@ -440,15 +440,20 @@ public void OnConVarQueryFinished(QueryCookie cookie,int client, ConVarQueryResu
         return;
     }
     
-    // Trie is case sensitive.
-    char sCvar[MAX_CVAR_NAME_LEN];
-    StringMap hDataTrie;
-
-    strcopy(sCvar, sizeof(sCvar), cvarName);
-    StringToLower(sCvar);
-
     // Did we expect this query?
-    if (!g_hCvarTrie.GetValue(sCvar, hDataTrie) || hDataTrie != g_hCurDataTrie[client])
+    StringMap hDataTrie = g_hCurDataTrie[client];
+
+    if (hDataTrie == null)
+    {
+        return;
+    }
+
+    // Stored names are lowercase (the trie key), so a case-insensitive
+    // compare matches what a lowercased trie lookup would.
+    char sCvar[MAX_CVAR_NAME_LEN];
+    hDataTrie.GetString(Cvar_Name, sCvar, sizeof(sCvar));
+
+    if (!StrEqual(cvarName, sCvar, false))
     {
         return;
     }
