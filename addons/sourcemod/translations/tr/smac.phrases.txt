@@ -1,0 +1,122 @@
+"Phrases"
+{
+	"SMAC_Tag"
+	{
+		"tr"		"[SMAC] "
+	}
+	
+	"SMAC_Banned"
+	{
+		"tr"		"Hile yaptığın için banlandın!"
+	}
+	
+	"SMAC_GlobalBanned"
+	{
+		"tr"		"{1} Global Ban Listesi'nde yer alıyorsun! Daha fazla bilgi için {2} adresine bak."
+	}
+	
+	"SMAC_CommandSpamKick"
+	{
+		"tr"		"Komut spamı yaptığın için atıldın!"
+	}
+	
+	"SMAC_IllegalDefuse"
+	{
+		"tr"		"Duvarların arkasından bomba çözemezsin!"
+	}
+	
+	"SMAC_PleaseWait"
+	{
+		"tr"		"Tekrar bağlanmadan önce lütfen bir dakika bekle."
+	}
+	
+	"SMAC_FailedToReply"
+	{
+		"tr"		"İstemcin bir sorguya zamanında yanıt veremedi! Lütfen yeniden bağlan veya oyunu yeniden başlat."
+	}
+	
+	"SMAC_FailedAuth"
+	{
+		"tr"		"İstemcin zamanında yetkilendirilemedi! Lütfen yeniden bağlan veya oyunu yeniden başlat."
+	}
+	
+	"SMAC_Muted"
+	{
+		"tr"		"{1}, SourceMod Anti-Cheat tarafından susturuldu."
+	}
+	
+	"SMAC_CvarViolation"
+	{
+		"tr"		"{1}, {2} için geçersiz bir değer döndürdü."
+	}
+	
+	"SMAC_ShouldEqual"
+	{
+		"tr"		"{1} convar'ı {2} olmalıydı, ama {3} olarak ayarlı! Tekrar katılmadan önce lütfen düzelt."
+	}
+	
+	"SMAC_ShouldBeGreater"
+	{
+		"tr"		"{1} convar'ı {2} değerine eşit veya daha büyük olmalıydı, ama {3} olarak ayarlı! Tekrar katılmadan önce lütfen düzelt."
+	}
+	
+	"SMAC_ShouldBeLess"
+	{
+		"tr"		"{1} convar'ı {2} değerine eşit veya daha küçük olmalıydı, ama {3} olarak ayarlı! Tekrar katılmadan önce lütfen düzelt."
+	}
+	
+	"SMAC_ShouldBeBetween"
+	{
+		"tr"		"{1} convar'ı {2} ile {3} arasında olmalıydı, ama {4} olarak ayarlı! Tekrar katılmadan önce lütfen düzelt."
+	}
+	
+	"SMAC_ShouldBeOutside"
+	{
+		"tr"		"{1} convar'ı {2} ile {3} arasında olmamalıydı, ama {4} olarak ayarlı! Tekrar katılmadan önce lütfen düzelt."
+	}
+	
+	"SMAC_ChangeName"
+	{
+		"tr"		"Lütfen adını değiştir!"
+	}
+	
+	"SMAC_CmdBanned"
+	{
+		"tr"		"Komut kullanım ihlali nedeniyle banlandın!"
+	}
+	
+	"SMAC_SayBlock"
+	{
+		"tr"		"Mesajın geçersiz bir karakter nedeniyle engellendi!"
+	}
+	
+	"SMAC_AimbotDetected"
+	{
+		"tr"		"{1} aimbot kullanmakla şüpheleniliyor! (Tespit #{2} | Sapma: {3}° | Silah: {4})"
+	}
+	
+	"SMAC_AutoTriggerDetected"
+	{
+		"tr"		"{1} auto-trigger hilesi kullanmakla şüpheleniliyor: {2}."
+	}
+	
+	"SMAC_SpinhackDetected"
+	{
+		"tr"		"{1} spinhack kullanmakla şüpheleniliyor."
+	}
+	
+	"SMAC_SpeedhackDetected"
+	{
+		"tr"		"{1} speedhack kullanmakla şüpheleniliyor."
+	}
+	
+	"SMAC_EyetestDetected"
+	{
+		"tr"		"{1} bakış açılarıyla hile yapmakla şüpheleniliyor."
+	}
+	
+	"SMAC_WelcomeMsg"
+	{
+		"tr"		"Bu sunucu SourceMod Anti-Cheat tarafından korunuyor."
+	}
+}
